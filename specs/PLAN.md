@@ -42,7 +42,7 @@ Each task is small and independently testable. Complete them in order; check off
 
 ## Phase 5: Display Helpers
 
-- [ ] Create `src/gitgym/display.py` with helper functions for formatted terminal output: `print_success(msg)`, `print_error(msg)`, `print_info(msg)`, `print_exercise_header(exercise)` using click styling
+- [x] Create `src/gitgym/display.py` with helper functions for formatted terminal output: `print_success(msg)`, `print_error(msg)`, `print_info(msg)`, `print_exercise_header(exercise)` using click styling
 - [ ] Implement `print_exercise_list(exercises, progress)` — formats the grouped exercise list with completion indicators
 - [ ] Implement `print_progress_summary(exercises, progress)` — prints overall stats (completed / total, per-topic breakdown)
 
