@@ -38,3 +38,15 @@ def mark_in_progress(exercise_key: str) -> None:
         "started_at": datetime.now(timezone.utc).isoformat(),
     }
     save_progress(data)
+
+
+def mark_completed(exercise_key: str) -> None:
+    """Set an exercise status to 'completed' with a completed_at timestamp."""
+    data = load_progress()
+    existing = data["exercises"].get(exercise_key, {})
+    data["exercises"][exercise_key] = {
+        **existing,
+        "status": "completed",
+        "completed_at": datetime.now(timezone.utc).isoformat(),
+    }
+    save_progress(data)

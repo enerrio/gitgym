@@ -5,6 +5,7 @@ from unittest import mock
 from gitgym.progress import (
     get_exercise_status,
     load_progress,
+    mark_completed,
     mark_in_progress,
     save_progress,
 )
@@ -175,6 +176,56 @@ def test_mark_in_progress_new_exercise_creates_entry(tmp_path):
 
     assert "01_basics/02_staging" in result["exercises"]
     assert result["exercises"]["01_basics/02_staging"]["status"] == "in_progress"
+
+
+def test_mark_completed_sets_status(tmp_path):
+    with _patch_progress_file(tmp_path):
+        mark_completed("01_basics/01_init")
+        result = load_progress()
+
+    exercise = result["exercises"]["01_basics/01_init"]
+    assert exercise["status"] == "completed"
+    assert "completed_at" in exercise
+
+
+def test_mark_completed_completed_at_is_iso_timestamp(tmp_path):
+    with _patch_progress_file(tmp_path):
+        mark_completed("01_basics/01_init")
+        result = load_progress()
+
+    from datetime import datetime
+
+    completed_at = result["exercises"]["01_basics/01_init"]["completed_at"]
+    dt = datetime.fromisoformat(completed_at)
+    assert dt.tzinfo is not None
+
+
+def test_mark_completed_preserves_existing_hints_used(tmp_path):
+    progress_file = tmp_path / "progress.json"
+    data = {
+        "version": 1,
+        "exercises": {
+            "01_basics/01_init": {"status": "in_progress", "hints_used": 3},
+        },
+    }
+    progress_file.write_text(json.dumps(data))
+
+    with mock.patch("gitgym.progress.PROGRESS_FILE", progress_file):
+        mark_completed("01_basics/01_init")
+        result = load_progress()
+
+    exercise = result["exercises"]["01_basics/01_init"]
+    assert exercise["status"] == "completed"
+    assert exercise["hints_used"] == 3
+
+
+def test_mark_completed_new_exercise_creates_entry(tmp_path):
+    with _patch_progress_file(tmp_path):
+        mark_completed("01_basics/02_staging")
+        result = load_progress()
+
+    assert "01_basics/02_staging" in result["exercises"]
+    assert result["exercises"]["01_basics/02_staging"]["status"] == "completed"
 
 
 def test_save_and_load_roundtrip(tmp_path):
