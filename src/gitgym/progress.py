@@ -62,3 +62,10 @@ def increment_hints_used(exercise_key: str) -> None:
         "hints_used": current_hints + 1,
     }
     save_progress(data)
+
+
+def reset_exercise_progress(exercise_key: str) -> None:
+    """Remove the exercise entry from progress (sets it back to not_started)."""
+    data = load_progress()
+    data["exercises"].pop(exercise_key, None)
+    save_progress(data)

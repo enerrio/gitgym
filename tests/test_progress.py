@@ -8,6 +8,7 @@ from gitgym.progress import (
     load_progress,
     mark_completed,
     mark_in_progress,
+    reset_exercise_progress,
     save_progress,
 )
 
@@ -297,6 +298,75 @@ def test_increment_hints_used_does_not_change_other_exercises(tmp_path):
 
     assert result["exercises"]["01_basics/01_init"]["hints_used"] == 1
     assert result["exercises"]["01_basics/02_staging"]["hints_used"] == 2
+
+
+def test_reset_exercise_progress_removes_entry(tmp_path):
+    progress_file = tmp_path / "progress.json"
+    data = {
+        "version": 1,
+        "exercises": {
+            "01_basics/01_init": {"status": "completed", "hints_used": 2},
+        },
+    }
+    progress_file.write_text(json.dumps(data))
+
+    with mock.patch("gitgym.progress.PROGRESS_FILE", progress_file):
+        reset_exercise_progress("01_basics/01_init")
+        result = load_progress()
+
+    assert "01_basics/01_init" not in result["exercises"]
+
+
+def test_reset_exercise_progress_missing_key_is_noop(tmp_path):
+    with _patch_progress_file(tmp_path):
+        # Should not raise even if the exercise was never started
+        reset_exercise_progress("01_basics/01_init")
+        result = load_progress()
+
+    assert result == {"version": 1, "exercises": {}}
+
+
+def test_reset_exercise_progress_does_not_affect_other_exercises(tmp_path):
+    progress_file = tmp_path / "progress.json"
+    data = {
+        "version": 1,
+        "exercises": {
+            "01_basics/01_init": {"status": "completed", "hints_used": 0},
+            "01_basics/02_staging": {"status": "in_progress", "hints_used": 1},
+        },
+    }
+    progress_file.write_text(json.dumps(data))
+
+    with mock.patch("gitgym.progress.PROGRESS_FILE", progress_file):
+        reset_exercise_progress("01_basics/01_init")
+        result = load_progress()
+
+    assert "01_basics/01_init" not in result["exercises"]
+    assert result["exercises"]["01_basics/02_staging"] == {
+        "status": "in_progress",
+        "hints_used": 1,
+    }
+
+
+def test_reset_exercise_progress_status_becomes_not_started(tmp_path):
+    progress_file = tmp_path / "progress.json"
+    data = {
+        "version": 1,
+        "exercises": {
+            "01_basics/01_init": {
+                "status": "in_progress",
+                "started_at": "2026-02-16T10:00:00Z",
+                "hints_used": 1,
+            },
+        },
+    }
+    progress_file.write_text(json.dumps(data))
+
+    with mock.patch("gitgym.progress.PROGRESS_FILE", progress_file):
+        reset_exercise_progress("01_basics/01_init")
+        status = get_exercise_status("01_basics/01_init")
+
+    assert status == "not_started"
 
 
 def test_save_and_load_roundtrip(tmp_path):
