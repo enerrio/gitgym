@@ -4,7 +4,11 @@ import subprocess
 import click
 
 from gitgym.config import WORKSPACE_DIR
-from gitgym.display import print_exercise_header, print_exercise_list
+from gitgym.display import (
+    print_exercise_header,
+    print_exercise_list,
+    print_progress_summary,
+)
 from gitgym.exercise import Exercise, load_all_exercises
 from gitgym.progress import (
     get_current_exercise,
@@ -334,3 +338,11 @@ def reset_exercise(exercise: str | None, reset_all: bool):
     key = _exercise_key(target)
     reset_exercise_progress(key)
     click.echo(click.style(f"Exercise '{target.name}' has been reset.", fg="green"))
+
+
+@main.command("progress")
+def show_progress():
+    """Show overall progress summary."""
+    exercises = load_all_exercises()
+    progress = load_progress()
+    print_progress_summary(exercises, progress)
