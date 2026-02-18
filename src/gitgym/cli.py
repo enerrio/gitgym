@@ -12,6 +12,8 @@ from gitgym.progress import (
     load_progress,
     mark_completed,
     mark_in_progress,
+    reset_all_progress,
+    reset_exercise_progress,
 )
 from gitgym.runner import run_setup, run_verify
 
@@ -260,3 +262,75 @@ def hint_exercise():
         click.echo("(No more hints available.)")
 
     increment_hints_used(current_key)
+
+
+@main.command("reset")
+@click.argument("exercise", required=False)
+@click.option(
+    "--all",
+    "reset_all",
+    is_flag=True,
+    default=False,
+    help="Reset all exercises and clear progress.",
+)
+def reset_exercise(exercise: str | None, reset_all: bool):
+    """Reset an exercise to its initial state.
+
+    If --all is given, deletes the workspace and clears all progress.
+    If EXERCISE is given, resets that exercise.
+    If neither is given, resets the current in-progress exercise.
+    """
+    if reset_all:
+        # Delete workspace directory and progress file
+        if WORKSPACE_DIR.exists():
+            shutil.rmtree(WORKSPACE_DIR)
+        reset_all_progress()
+        click.echo(click.style("All exercises reset. Progress cleared.", fg="green"))
+        return
+
+    exercises = load_all_exercises()
+
+    if exercise:
+        target = _find_by_name(exercises, exercise)
+        if target is None:
+            click.echo(
+                click.style(f"Error: No exercise named '{exercise}' found.", fg="red"),
+                err=True,
+            )
+            click.echo("Run 'gitgym list' to see available exercises.", err=True)
+            raise SystemExit(1)
+    else:
+        current_key = get_current_exercise()
+        if current_key is None:
+            click.echo(
+                click.style("No exercise is currently in progress.", fg="yellow"),
+                err=True,
+            )
+            click.echo(
+                "Run 'gitgym start' or 'gitgym list' to begin an exercise.", err=True
+            )
+            raise SystemExit(1)
+
+        target = None
+        for ex in exercises:
+            if _exercise_key(ex) == current_key:
+                target = ex
+                break
+
+        if target is None:
+            click.echo(
+                click.style(
+                    f"Error: Exercise '{current_key}' not found in exercise definitions.",
+                    fg="red",
+                ),
+                err=True,
+            )
+            raise SystemExit(1)
+
+    success = run_setup(target)
+    if not success:
+        raise SystemExit(1)
+
+    key = _exercise_key(target)
+    reset_exercise_progress(key)
+    click.echo(click.style(f"Exercise '{target.name}' has been reset.", fg="green"))

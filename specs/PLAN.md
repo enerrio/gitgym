@@ -55,8 +55,8 @@ Each task is small and independently testable. Complete them in order; check off
 - [x] Implement `gitgym describe` — find the current in-progress exercise, print its description and goal
 - [x] Implement `gitgym verify` — find the current exercise, run `verify.sh`, print result, mark completed on success
 - [x] Implement `gitgym hint` — find the current exercise, read `hints_used` from progress, show the next hint, increment counter
-- [ ] Implement `gitgym reset` / `gitgym reset <exercise>` — re-run `setup.sh`, reset progress entry
-- [ ] Implement `gitgym reset --all` — delete workspace and progress, print confirmation
+- [x] Implement `gitgym reset` / `gitgym reset <exercise>` — re-run `setup.sh`, reset progress entry
+- [x] Implement `gitgym reset --all` — delete workspace and progress, print confirmation
 - [ ] Implement `gitgym progress` — load exercises and progress, delegate to `print_progress_summary`
 - [ ] Write CLI integration tests: invoke each command via `click.testing.CliRunner` with a temp workspace
 
