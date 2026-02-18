@@ -2,6 +2,8 @@ import tomllib
 from dataclasses import dataclass
 from pathlib import Path
 
+from gitgym.config import EXERCISES_DIR
+
 
 @dataclass
 class Exercise:
@@ -29,3 +31,15 @@ def load_exercise(exercise_dir: Path) -> "Exercise":
         hints=hints,
         path=exercise_dir,
     )
+
+
+def load_all_exercises() -> list[Exercise]:
+    """Discover all NN_topic/NN_exercise/ directories under EXERCISES_DIR and return them sorted."""
+    exercise_dirs = sorted(
+        d
+        for topic_dir in sorted(EXERCISES_DIR.iterdir())
+        if topic_dir.is_dir()
+        for d in sorted(topic_dir.iterdir())
+        if d.is_dir()
+    )
+    return [load_exercise(d) for d in exercise_dirs]

@@ -1,9 +1,10 @@
 import textwrap
 from pathlib import Path
+from unittest import mock
 
 import pytest
 
-from gitgym.exercise import Exercise, load_exercise
+from gitgym.exercise import Exercise, load_exercise, load_all_exercises
 
 
 @pytest.fixture
@@ -122,3 +123,68 @@ def test_load_exercise_no_hints(tmp_path):
 def test_load_exercise_missing_toml_raises(tmp_path):
     with pytest.raises(FileNotFoundError):
         load_exercise(tmp_path)
+
+
+def _make_exercise_toml(directory: Path, name: str, topic: str, title: str) -> None:
+    toml = directory / "exercise.toml"
+    toml.write_text(
+        textwrap.dedent(f"""\
+            [exercise]
+            name = "{name}"
+            topic = "{topic}"
+            title = "{title}"
+            description = "Description for {name}."
+
+            [goal]
+            summary = "Goal for {name}."
+
+            [[hints]]
+            text = "Hint for {name}."
+        """)
+    )
+
+
+def test_load_all_exercises_returns_sorted_list(tmp_path):
+    # Create a fake exercises tree: two topics, two exercises each
+    (tmp_path / "02_committing" / "01_amend").mkdir(parents=True)
+    (tmp_path / "02_committing" / "02_multi_commit").mkdir(parents=True)
+    (tmp_path / "01_basics" / "02_staging").mkdir(parents=True)
+    (tmp_path / "01_basics" / "01_init").mkdir(parents=True)
+
+    _make_exercise_toml(tmp_path / "01_basics" / "01_init", "init", "Basics", "Init")
+    _make_exercise_toml(
+        tmp_path / "01_basics" / "02_staging", "staging", "Basics", "Staging"
+    )
+    _make_exercise_toml(
+        tmp_path / "02_committing" / "01_amend", "amend", "Committing", "Amend"
+    )
+    _make_exercise_toml(
+        tmp_path / "02_committing" / "02_multi_commit",
+        "multi_commit",
+        "Committing",
+        "Multi Commit",
+    )
+
+    with mock.patch("gitgym.exercise.EXERCISES_DIR", tmp_path):
+        exercises = load_all_exercises()
+
+    assert len(exercises) == 4
+    assert [ex.name for ex in exercises] == ["init", "staging", "amend", "multi_commit"]
+
+
+def test_load_all_exercises_returns_exercise_instances(tmp_path):
+    (tmp_path / "01_basics" / "01_init").mkdir(parents=True)
+    _make_exercise_toml(tmp_path / "01_basics" / "01_init", "init", "Basics", "Init")
+
+    with mock.patch("gitgym.exercise.EXERCISES_DIR", tmp_path):
+        exercises = load_all_exercises()
+
+    assert len(exercises) == 1
+    assert isinstance(exercises[0], Exercise)
+
+
+def test_load_all_exercises_empty_dir(tmp_path):
+    with mock.patch("gitgym.exercise.EXERCISES_DIR", tmp_path):
+        exercises = load_all_exercises()
+
+    assert exercises == []
