@@ -8,6 +8,8 @@ from gitgym.display import (
     print_error,
     print_info,
     print_exercise_header,
+    print_exercise_list,
+    print_progress_summary,
 )
 from gitgym.exercise import Exercise
 
@@ -114,4 +116,138 @@ def test_print_exercise_header_multiline_description():
 def test_print_exercise_header_exit_zero():
     ex = _make_exercise()
     result = _invoke(print_exercise_header, ex)
+    assert result.exit_code == 0
+
+
+# --- print_exercise_list ---
+
+
+def _make_exercise_with_path(name, topic, title, topic_dir, exercise_dir) -> Exercise:
+    return Exercise(
+        name=name,
+        topic=topic,
+        title=title,
+        description="A description.",
+        goal_summary="A goal.",
+        hints=[],
+        path=Path(f"/tmp/exercises/{topic_dir}/{exercise_dir}"),
+    )
+
+
+def test_print_exercise_list_shows_topic_header():
+    ex = _make_exercise_with_path(
+        "init", "Basics", "Initialize a Repository", "01_basics", "01_init"
+    )
+    result = _invoke(print_exercise_list, [ex], {"exercises": {}})
+    assert "Basics" in result.output
+
+
+def test_print_exercise_list_shows_exercise_title():
+    ex = _make_exercise_with_path(
+        "init", "Basics", "Initialize a Repository", "01_basics", "01_init"
+    )
+    result = _invoke(print_exercise_list, [ex], {"exercises": {}})
+    assert "Initialize a Repository" in result.output
+
+
+def test_print_exercise_list_completed_indicator():
+    ex = _make_exercise_with_path(
+        "init", "Basics", "Initialize a Repository", "01_basics", "01_init"
+    )
+    progress = {"exercises": {"01_basics/01_init": {"status": "completed"}}}
+    result = _invoke(print_exercise_list, [ex], progress)
+    assert "✓" in result.output
+
+
+def test_print_exercise_list_in_progress_indicator():
+    ex = _make_exercise_with_path(
+        "init", "Basics", "Initialize a Repository", "01_basics", "01_init"
+    )
+    progress = {"exercises": {"01_basics/01_init": {"status": "in_progress"}}}
+    result = _invoke(print_exercise_list, [ex], progress)
+    assert "→" in result.output
+
+
+def test_print_exercise_list_not_started_indicator():
+    ex = _make_exercise_with_path(
+        "init", "Basics", "Initialize a Repository", "01_basics", "01_init"
+    )
+    result = _invoke(print_exercise_list, [ex], {"exercises": {}})
+    assert "○" in result.output
+
+
+def test_print_exercise_list_groups_by_topic():
+    ex1 = _make_exercise_with_path(
+        "init", "Basics", "Initialize", "01_basics", "01_init"
+    )
+    ex2 = _make_exercise_with_path(
+        "staging", "Basics", "Staging Files", "01_basics", "02_staging"
+    )
+    ex3 = _make_exercise_with_path(
+        "amend", "Committing", "Amend Commit", "02_committing", "01_amend"
+    )
+    result = _invoke(print_exercise_list, [ex1, ex2, ex3], {"exercises": {}})
+    # Topic headers appear once each
+    assert result.output.count("Basics") == 1
+    assert result.output.count("Committing") == 1
+
+
+def test_print_exercise_list_exit_zero():
+    ex = _make_exercise_with_path(
+        "init", "Basics", "Initialize a Repository", "01_basics", "01_init"
+    )
+    result = _invoke(print_exercise_list, [ex], {"exercises": {}})
+    assert result.exit_code == 0
+
+
+# --- print_progress_summary ---
+
+
+def test_print_progress_summary_shows_totals():
+    ex1 = _make_exercise_with_path(
+        "init", "Basics", "Initialize", "01_basics", "01_init"
+    )
+    ex2 = _make_exercise_with_path(
+        "staging", "Basics", "Staging", "01_basics", "02_staging"
+    )
+    progress = {"exercises": {"01_basics/01_init": {"status": "completed"}}}
+    result = _invoke(print_progress_summary, [ex1, ex2], progress)
+    assert "1/2" in result.output
+
+
+def test_print_progress_summary_shows_topic_breakdown():
+    ex1 = _make_exercise_with_path(
+        "init", "Basics", "Initialize", "01_basics", "01_init"
+    )
+    ex2 = _make_exercise_with_path(
+        "amend", "Committing", "Amend", "02_committing", "01_amend"
+    )
+    progress = {"exercises": {"01_basics/01_init": {"status": "completed"}}}
+    result = _invoke(print_progress_summary, [ex1, ex2], progress)
+    assert "Basics" in result.output
+    assert "Committing" in result.output
+
+
+def test_print_progress_summary_zero_completed():
+    ex = _make_exercise_with_path(
+        "init", "Basics", "Initialize", "01_basics", "01_init"
+    )
+    result = _invoke(print_progress_summary, [ex], {"exercises": {}})
+    assert "0/1" in result.output
+
+
+def test_print_progress_summary_all_completed():
+    ex = _make_exercise_with_path(
+        "init", "Basics", "Initialize", "01_basics", "01_init"
+    )
+    progress = {"exercises": {"01_basics/01_init": {"status": "completed"}}}
+    result = _invoke(print_progress_summary, [ex], progress)
+    assert "1/1" in result.output
+
+
+def test_print_progress_summary_exit_zero():
+    ex = _make_exercise_with_path(
+        "init", "Basics", "Initialize", "01_basics", "01_init"
+    )
+    result = _invoke(print_progress_summary, [ex], {"exercises": {}})
     assert result.exit_code == 0

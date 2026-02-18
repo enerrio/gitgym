@@ -24,3 +24,61 @@ def print_exercise_header(exercise: Exercise) -> None:
     click.echo(click.style(f"{exercise.title}", fg="bright_white", bold=True))
     click.echo(f"\n{exercise.description.strip()}\n")
     click.echo(click.style(f"Goal: {exercise.goal_summary}", fg="yellow"))
+
+
+def _exercise_key(exercise: Exercise) -> str:
+    """Derive the progress key (topic_dir/exercise_dir) from the exercise path."""
+    return f"{exercise.path.parent.name}/{exercise.path.name}"
+
+
+def print_exercise_list(exercises: list[Exercise], progress: dict) -> None:
+    """Print all exercises grouped by topic with completion status indicators."""
+    ex_progress = progress.get("exercises", {})
+    current_topic = None
+    for exercise in exercises:
+        if exercise.topic != current_topic:
+            current_topic = exercise.topic
+            click.echo(click.style(f"\n{exercise.topic}", fg="yellow", bold=True))
+        key = _exercise_key(exercise)
+        status = ex_progress.get(key, {}).get("status", "not_started")
+        if status == "completed":
+            indicator = click.style("✓", fg="green")
+        elif status == "in_progress":
+            indicator = click.style("→", fg="cyan")
+        else:
+            indicator = click.style("○", fg="white")
+        click.echo(f"  {indicator} {exercise.title}")
+
+
+def print_progress_summary(exercises: list[Exercise], progress: dict) -> None:
+    """Print overall progress stats: completed/total and per-topic breakdown."""
+    ex_progress = progress.get("exercises", {})
+
+    total = len(exercises)
+    completed_total = sum(
+        1
+        for ex in exercises
+        if ex_progress.get(_exercise_key(ex), {}).get("status") == "completed"
+    )
+
+    click.echo(
+        click.style(
+            f"Progress: {completed_total}/{total} exercises completed", bold=True
+        )
+    )
+
+    # Group by topic
+    topics: dict[str, list[Exercise]] = {}
+    for ex in exercises:
+        topics.setdefault(ex.topic, []).append(ex)
+
+    for topic, topic_exercises in topics.items():
+        completed = sum(
+            1
+            for ex in topic_exercises
+            if ex_progress.get(_exercise_key(ex), {}).get("status") == "completed"
+        )
+        total_in_topic = len(topic_exercises)
+        bar_filled = int(completed / total_in_topic * 10) if total_in_topic else 0
+        bar = "█" * bar_filled + "░" * (10 - bar_filled)
+        click.echo(f"  {topic:<20} [{bar}] {completed}/{total_in_topic}")
