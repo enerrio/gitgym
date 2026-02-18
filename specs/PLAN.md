@@ -16,7 +16,7 @@ Each task is small and independently testable. Complete them in order; check off
 ## Phase 2: Exercise Loading
 
 - [x] Create `src/gitgym/exercise.py` with an `Exercise` dataclass: `name`, `topic`, `title`, `description`, `goal_summary`, `hints` (list of strings), `path` (path to exercise directory on disk)
-- [ ] Implement `load_exercise(exercise_dir: Path) -> Exercise` that reads `exercise.toml` from a directory and returns an `Exercise` instance
+- [x] Implement `load_exercise(exercise_dir: Path) -> Exercise` that reads `exercise.toml` from a directory and returns an `Exercise` instance
 - [ ] Implement `load_all_exercises() -> list[Exercise]` that discovers all `NN_topic/NN_exercise/` directories under `EXERCISES_DIR`, loads each, and returns them sorted by directory name
 - [ ] Write tests: create a temp directory with a sample `exercise.toml`, verify `load_exercise` parses all fields correctly
 - [ ] Write tests: create a temp tree with multiple topics/exercises, verify `load_all_exercises` returns them in order
