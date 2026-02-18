@@ -75,3 +75,12 @@ def reset_all_progress() -> None:
     """Delete the progress file, clearing all progress."""
     if PROGRESS_FILE.exists():
         PROGRESS_FILE.unlink()
+
+
+def get_current_exercise() -> str | None:
+    """Return the key of the exercise currently in_progress, or None."""
+    data = load_progress()
+    for key, entry in data.get("exercises", {}).items():
+        if entry.get("status") == "in_progress":
+            return key
+    return None

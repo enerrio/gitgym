@@ -3,6 +3,7 @@ from pathlib import Path
 from unittest import mock
 
 from gitgym.progress import (
+    get_current_exercise,
     get_exercise_status,
     increment_hints_used,
     load_progress,
@@ -410,6 +411,79 @@ def test_reset_all_progress_load_returns_default_after_reset(tmp_path):
         result = load_progress()
 
     assert result == {"version": 1, "exercises": {}}
+
+
+def test_get_current_exercise_returns_none_when_no_progress(tmp_path):
+    with _patch_progress_file(tmp_path):
+        result = get_current_exercise()
+    assert result is None
+
+
+def test_get_current_exercise_returns_none_when_all_completed(tmp_path):
+    progress_file = tmp_path / "progress.json"
+    data = {
+        "version": 1,
+        "exercises": {
+            "01_basics/01_init": {"status": "completed", "hints_used": 0},
+            "01_basics/02_staging": {"status": "completed", "hints_used": 0},
+        },
+    }
+    progress_file.write_text(json.dumps(data))
+
+    with mock.patch("gitgym.progress.PROGRESS_FILE", progress_file):
+        result = get_current_exercise()
+
+    assert result is None
+
+
+def test_get_current_exercise_returns_in_progress_key(tmp_path):
+    progress_file = tmp_path / "progress.json"
+    data = {
+        "version": 1,
+        "exercises": {
+            "01_basics/01_init": {"status": "completed", "hints_used": 0},
+            "01_basics/02_staging": {"status": "in_progress", "hints_used": 1},
+        },
+    }
+    progress_file.write_text(json.dumps(data))
+
+    with mock.patch("gitgym.progress.PROGRESS_FILE", progress_file):
+        result = get_current_exercise()
+
+    assert result == "01_basics/02_staging"
+
+
+def test_get_current_exercise_returns_none_when_only_not_started(tmp_path):
+    progress_file = tmp_path / "progress.json"
+    data = {
+        "version": 1,
+        "exercises": {
+            "01_basics/01_init": {"status": "not_started", "hints_used": 0},
+        },
+    }
+    progress_file.write_text(json.dumps(data))
+
+    with mock.patch("gitgym.progress.PROGRESS_FILE", progress_file):
+        result = get_current_exercise()
+
+    assert result is None
+
+
+def test_get_current_exercise_after_mark_in_progress(tmp_path):
+    with _patch_progress_file(tmp_path):
+        mark_in_progress("01_basics/03_status")
+        result = get_current_exercise()
+
+    assert result == "01_basics/03_status"
+
+
+def test_get_current_exercise_returns_none_after_mark_completed(tmp_path):
+    with _patch_progress_file(tmp_path):
+        mark_in_progress("01_basics/01_init")
+        mark_completed("01_basics/01_init")
+        result = get_current_exercise()
+
+    assert result is None
 
 
 def test_save_and_load_roundtrip(tmp_path):
