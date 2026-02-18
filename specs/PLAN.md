@@ -23,7 +23,7 @@ Each task is small and independently testable. Complete them in order; check off
 
 ## Phase 3: Progress Tracking
 
-- [ ] Create `src/gitgym/progress.py` with functions: `load_progress() -> dict`, `save_progress(data: dict)`, reading/writing `~/.gitgym/progress.json`
+- [x] Create `src/gitgym/progress.py` with functions: `load_progress() -> dict`, `save_progress(data: dict)`, reading/writing `~/.gitgym/progress.json`
 - [ ] Implement `get_exercise_status(exercise_key: str) -> str` returning `"not_started"`, `"in_progress"`, or `"completed"`
 - [ ] Implement `mark_in_progress(exercise_key: str)` — sets status to `"in_progress"` with `started_at` timestamp
 - [ ] Implement `mark_completed(exercise_key: str)` — sets status to `"completed"` with `completed_at` timestamp
