@@ -48,7 +48,7 @@ Each task is small and independently testable. Complete them in order; check off
 
 ## Phase 6: CLI Commands (Core)
 
-- [ ] Create `src/gitgym/cli.py` with a `click.Group` named `main` and a git-installed check that runs before any command
+- [x] Create `src/gitgym/cli.py` with a `click.Group` named `main` and a git-installed check that runs before any command
 - [ ] Implement `gitgym list` — calls `load_all_exercises()`, loads progress, delegates to `print_exercise_list`
 - [ ] Implement `gitgym start [exercise]` — if name given, set up that exercise; if not, find next incomplete exercise; run `setup.sh`, mark `in_progress`, print the exercise path and description
 - [ ] Implement `gitgym next` — alias for `gitgym start` with no argument
