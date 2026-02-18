@@ -31,7 +31,7 @@ Each task is small and independently testable. Complete them in order; check off
 - [x] Implement `reset_exercise_progress(exercise_key: str)` — removes the exercise entry from progress
 - [x] Implement `reset_all_progress()` — deletes the progress file
 - [x] Implement `get_current_exercise() -> str | None` — returns the key of the exercise currently `in_progress` (or `None`)
-- [ ] Write tests for each function using a temp file for progress.json
+- [x] Write tests for each function using a temp file for progress.json
 
 ## Phase 4: Exercise Runner (setup & verify)
 
