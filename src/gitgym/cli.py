@@ -3,6 +3,10 @@ import subprocess
 
 import click
 
+from gitgym.display import print_exercise_list
+from gitgym.exercise import load_all_exercises
+from gitgym.progress import load_progress
+
 
 class GitGymGroup(click.Group):
     """Custom click.Group that checks for git before invoking any command."""
@@ -44,3 +48,11 @@ def _is_git_installed() -> bool:
 @click.group(cls=GitGymGroup)
 def main():
     """gitgym - Learn git through interactive exercises."""
+
+
+@main.command("list")
+def list_exercises():
+    """List all exercises grouped by topic, showing completion status."""
+    exercises = load_all_exercises()
+    progress = load_progress()
+    print_exercise_list(exercises, progress)
