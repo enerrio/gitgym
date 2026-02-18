@@ -4,6 +4,7 @@ from unittest import mock
 
 from gitgym.progress import (
     get_exercise_status,
+    increment_hints_used,
     load_progress,
     mark_completed,
     mark_in_progress,
@@ -226,6 +227,76 @@ def test_mark_completed_new_exercise_creates_entry(tmp_path):
 
     assert "01_basics/02_staging" in result["exercises"]
     assert result["exercises"]["01_basics/02_staging"]["status"] == "completed"
+
+
+def test_increment_hints_used_from_zero(tmp_path):
+    with _patch_progress_file(tmp_path):
+        increment_hints_used("01_basics/01_init")
+        result = load_progress()
+
+    assert result["exercises"]["01_basics/01_init"]["hints_used"] == 1
+
+
+def test_increment_hints_used_multiple_times(tmp_path):
+    with _patch_progress_file(tmp_path):
+        increment_hints_used("01_basics/01_init")
+        increment_hints_used("01_basics/01_init")
+        increment_hints_used("01_basics/01_init")
+        result = load_progress()
+
+    assert result["exercises"]["01_basics/01_init"]["hints_used"] == 3
+
+
+def test_increment_hints_used_preserves_existing_fields(tmp_path):
+    progress_file = tmp_path / "progress.json"
+    data = {
+        "version": 1,
+        "exercises": {
+            "01_basics/01_init": {
+                "status": "in_progress",
+                "started_at": "2026-02-16T10:30:00Z",
+                "hints_used": 1,
+            }
+        },
+    }
+    progress_file.write_text(json.dumps(data))
+
+    with mock.patch("gitgym.progress.PROGRESS_FILE", progress_file):
+        increment_hints_used("01_basics/01_init")
+        result = load_progress()
+
+    exercise = result["exercises"]["01_basics/01_init"]
+    assert exercise["hints_used"] == 2
+    assert exercise["status"] == "in_progress"
+    assert exercise["started_at"] == "2026-02-16T10:30:00Z"
+
+
+def test_increment_hints_used_creates_entry_if_absent(tmp_path):
+    with _patch_progress_file(tmp_path):
+        increment_hints_used("01_basics/02_staging")
+        result = load_progress()
+
+    assert "01_basics/02_staging" in result["exercises"]
+    assert result["exercises"]["01_basics/02_staging"]["hints_used"] == 1
+
+
+def test_increment_hints_used_does_not_change_other_exercises(tmp_path):
+    progress_file = tmp_path / "progress.json"
+    data = {
+        "version": 1,
+        "exercises": {
+            "01_basics/01_init": {"status": "completed", "hints_used": 0},
+            "01_basics/02_staging": {"status": "in_progress", "hints_used": 2},
+        },
+    }
+    progress_file.write_text(json.dumps(data))
+
+    with mock.patch("gitgym.progress.PROGRESS_FILE", progress_file):
+        increment_hints_used("01_basics/01_init")
+        result = load_progress()
+
+    assert result["exercises"]["01_basics/01_init"]["hints_used"] == 1
+    assert result["exercises"]["01_basics/02_staging"]["hints_used"] == 2
 
 
 def test_save_and_load_roundtrip(tmp_path):

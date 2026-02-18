@@ -50,3 +50,15 @@ def mark_completed(exercise_key: str) -> None:
         "completed_at": datetime.now(timezone.utc).isoformat(),
     }
     save_progress(data)
+
+
+def increment_hints_used(exercise_key: str) -> None:
+    """Increment the hints_used counter for an exercise."""
+    data = load_progress()
+    existing = data["exercises"].get(exercise_key, {})
+    current_hints = existing.get("hints_used", 0)
+    data["exercises"][exercise_key] = {
+        **existing,
+        "hints_used": current_hints + 1,
+    }
+    save_progress(data)
