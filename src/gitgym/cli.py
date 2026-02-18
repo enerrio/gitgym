@@ -6,7 +6,7 @@ import click
 from gitgym.config import WORKSPACE_DIR
 from gitgym.display import print_exercise_header, print_exercise_list
 from gitgym.exercise import Exercise, load_all_exercises
-from gitgym.progress import load_progress, mark_in_progress
+from gitgym.progress import get_current_exercise, load_progress, mark_in_progress
 from gitgym.runner import run_setup
 
 
@@ -126,3 +126,37 @@ def start_exercise(exercise: str | None):
 def next_exercise(ctx: click.Context):
     """Alias for 'gitgym start' with no argument (starts the next incomplete exercise)."""
     ctx.invoke(start_exercise)
+
+
+@main.command("describe")
+def describe_exercise():
+    """Print the current exercise's description and goal."""
+    current_key = get_current_exercise()
+    if current_key is None:
+        click.echo(
+            click.style("No exercise is currently in progress.", fg="yellow"),
+            err=True,
+        )
+        click.echo(
+            "Run 'gitgym start' or 'gitgym list' to begin an exercise.", err=True
+        )
+        raise SystemExit(1)
+
+    exercises = load_all_exercises()
+    target = None
+    for exercise in exercises:
+        if _exercise_key(exercise) == current_key:
+            target = exercise
+            break
+
+    if target is None:
+        click.echo(
+            click.style(
+                f"Error: Exercise '{current_key}' not found in exercise definitions.",
+                fg="red",
+            ),
+            err=True,
+        )
+        raise SystemExit(1)
+
+    print_exercise_header(target)
