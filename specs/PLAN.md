@@ -51,7 +51,7 @@ Each task is small and independently testable. Complete them in order; check off
 - [x] Create `src/gitgym/cli.py` with a `click.Group` named `main` and a git-installed check that runs before any command
 - [x] Implement `gitgym list` — calls `load_all_exercises()`, loads progress, delegates to `print_exercise_list`
 - [x] Implement `gitgym start [exercise]` — if name given, set up that exercise; if not, find next incomplete exercise; run `setup.sh`, mark `in_progress`, print the exercise path and description
-- [ ] Implement `gitgym next` — alias for `gitgym start` with no argument
+- [x] Implement `gitgym next` — alias for `gitgym start` with no argument
 - [ ] Implement `gitgym describe` — find the current in-progress exercise, print its description and goal
 - [ ] Implement `gitgym verify` — find the current exercise, run `verify.sh`, print result, mark completed on success
 - [ ] Implement `gitgym hint` — find the current exercise, read `hints_used` from progress, show the next hint, increment counter

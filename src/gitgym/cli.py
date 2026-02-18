@@ -119,3 +119,10 @@ def start_exercise(exercise: str | None):
     click.echo(click.style(f"Exercise directory: {workspace_path}", fg="cyan"))
     click.echo(f"  cd {workspace_path}\n")
     print_exercise_header(target)
+
+
+@main.command("next")
+@click.pass_context
+def next_exercise(ctx: click.Context):
+    """Alias for 'gitgym start' with no argument (starts the next incomplete exercise)."""
+    ctx.invoke(start_exercise)
