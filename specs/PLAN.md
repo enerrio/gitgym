@@ -28,7 +28,7 @@ Each task is small and independently testable. Complete them in order; check off
 - [x] Implement `mark_in_progress(exercise_key: str)` — sets status to `"in_progress"` with `started_at` timestamp
 - [x] Implement `mark_completed(exercise_key: str)` — sets status to `"completed"` with `completed_at` timestamp
 - [x] Implement `increment_hints_used(exercise_key: str)` — bumps the `hints_used` counter
-- [ ] Implement `reset_exercise_progress(exercise_key: str)` — removes the exercise entry from progress
+- [x] Implement `reset_exercise_progress(exercise_key: str)` — removes the exercise entry from progress
 - [ ] Implement `reset_all_progress()` — deletes the progress file
 - [ ] Implement `get_current_exercise() -> str | None` — returns the key of the exercise currently `in_progress` (or `None`)
 - [ ] Write tests for each function using a temp file for progress.json
