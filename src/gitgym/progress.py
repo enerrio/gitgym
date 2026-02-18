@@ -1,4 +1,5 @@
 import json
+from datetime import datetime, timezone
 
 from gitgym.config import PROGRESS_FILE
 
@@ -25,3 +26,15 @@ def get_exercise_status(exercise_key: str) -> str:
     if exercise is None:
         return "not_started"
     return exercise.get("status", "not_started")
+
+
+def mark_in_progress(exercise_key: str) -> None:
+    """Set an exercise status to 'in_progress' with a started_at timestamp."""
+    data = load_progress()
+    existing = data["exercises"].get(exercise_key, {})
+    data["exercises"][exercise_key] = {
+        **existing,
+        "status": "in_progress",
+        "started_at": datetime.now(timezone.utc).isoformat(),
+    }
+    save_progress(data)
