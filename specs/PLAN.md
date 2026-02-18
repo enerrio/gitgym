@@ -8,7 +8,7 @@ Each task is small and independently testable. Complete them in order; check off
 
 - [x] Initialize a `uv` project: run `uv init`, set up `pyproject.toml` with project metadata, Python >=3.12, `click` dependency, `[project.scripts] gitgym = "gitgym.cli:main"`, and hatchling build backend
 - [x] Create the source package directory `src/gitgym/` with `__init__.py` (version string) and `__main__.py` (`from gitgym.cli import main; main()`)
-- [ ] Create `src/gitgym/config.py` with path constants: `WORKSPACE_DIR = ~/.gitgym/exercises/`, `PROGRESS_FILE = ~/.gitgym/progress.json`, `EXERCISES_DIR` (package-relative `exercises/` directory)
+- [x] Create `src/gitgym/config.py` with path constants: `WORKSPACE_DIR = ~/.gitgym/exercises/`, `PROGRESS_FILE = ~/.gitgym/progress.json`, `EXERCISES_DIR` (package-relative `exercises/` directory)
 - [ ] Create the empty `exercises/` directory at project root (will hold exercise definitions, shipped with the package)
 - [ ] Configure `pyproject.toml` so that `exercises/` is included in the built package (hatchling `[tool.hatch.build]` settings)
 - [ ] Run `uv sync` and verify `uv run gitgym --help` prints output without error
