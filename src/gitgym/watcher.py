@@ -7,8 +7,12 @@ for file modification time changes.
 import time
 from pathlib import Path
 
+import click
+
 from gitgym.config import EXERCISES_DIR, WORKSPACE_DIR
+from gitgym.display import print_error, print_success
 from gitgym.exercise import Exercise
+from gitgym.runner import run_verify
 
 POLL_INTERVAL = 1  # seconds
 
@@ -69,3 +73,51 @@ def watch(exercise: Exercise, poll_interval: float = POLL_INTERVAL) -> None:
 
         else:
             previous_mtimes = current_mtimes
+
+
+def watch_and_verify(
+    exercise: Exercise,
+    poll_interval: float = POLL_INTERVAL,
+    *,
+    on_completed=None,
+) -> None:
+    """Watch the exercise workspace and run verify.sh whenever a change is detected.
+
+    Displays the verify output after each change.  Stops (returns) when
+    verification succeeds.  Call ``on_completed(exercise_key)`` callback (if
+    provided) so the caller can update progress without this module needing to
+    import ``progress``.
+
+    Parameters
+    ----------
+    exercise:
+        The exercise to watch and verify.
+    poll_interval:
+        Seconds between each filesystem poll. Defaults to POLL_INTERVAL.
+    on_completed:
+        Optional zero-argument callable invoked when the exercise is verified
+        successfully (e.g. to mark it completed in progress tracking).
+    """
+    click.echo(
+        click.style(
+            f"Watching '{exercise.title}' — press Ctrl+C to stop.",
+            fg="cyan",
+        )
+    )
+
+    try:
+        for _ in watch(exercise, poll_interval=poll_interval):
+            success, output = run_verify(exercise)
+
+            if output:
+                click.echo(output)
+
+            if success:
+                print_success("Exercise complete! Great work.")
+                if on_completed is not None:
+                    on_completed()
+                return
+            else:
+                print_error("Not quite right yet. Keep trying!")
+    except KeyboardInterrupt:
+        click.echo("\nWatch mode stopped.")

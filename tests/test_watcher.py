@@ -3,8 +3,16 @@
 from pathlib import Path
 from unittest import mock
 
+from click.testing import CliRunner
+
 from gitgym.exercise import Exercise
-from gitgym.watcher import POLL_INTERVAL, _collect_mtimes, _has_changed, watch
+from gitgym.watcher import (
+    POLL_INTERVAL,
+    _collect_mtimes,
+    _has_changed,
+    watch,
+    watch_and_verify,
+)
 
 
 def _make_exercise(exercise_dir: Path, name: str = "test_exercise") -> Exercise:
@@ -252,3 +260,176 @@ def test_watch_workspace_path_is_derived_from_exercise(tmp_path):
 
     expected = tmp_path / "workspace" / "02_committing" / "01_amend"
     assert all(d == expected for d in collected_dirs)
+
+
+# --- watch_and_verify tests ---
+
+
+def _setup_watch_and_verify(tmp_path):
+    """Set up directories and return an exercise for watch_and_verify tests."""
+    exercises_dir = tmp_path / "exercises" / "01_basics" / "01_init"
+    exercises_dir.mkdir(parents=True)
+    workspace_dir = tmp_path / "workspace" / "01_basics" / "01_init"
+    workspace_dir.mkdir(parents=True)
+    exercise = _make_exercise(exercises_dir)
+    return exercise
+
+
+def test_watch_and_verify_stops_on_success(tmp_path):
+    """watch_and_verify returns after verify.sh succeeds."""
+    exercise = _setup_watch_and_verify(tmp_path)
+    f = tmp_path / "workspace" / "01_basics" / "01_init" / "file.txt"
+
+    change_sequence = [{}, {f: 1.0}]
+    idx = 0
+
+    def fake_collect(_directory):
+        nonlocal idx
+        val = change_sequence[min(idx, len(change_sequence) - 1)]
+        idx += 1
+        return val
+
+    with (
+        mock.patch("gitgym.watcher.EXERCISES_DIR", tmp_path / "exercises"),
+        mock.patch("gitgym.watcher.WORKSPACE_DIR", tmp_path / "workspace"),
+        mock.patch("gitgym.watcher.time.sleep"),
+        mock.patch("gitgym.watcher._collect_mtimes", side_effect=fake_collect),
+        mock.patch("gitgym.watcher.run_verify", return_value=(True, "Great job!")),
+    ):
+        # Should return without raising
+        watch_and_verify(exercise, poll_interval=0)
+
+
+def test_watch_and_verify_calls_on_completed_callback(tmp_path):
+    """watch_and_verify invokes on_completed when verify succeeds."""
+    exercise = _setup_watch_and_verify(tmp_path)
+    f = tmp_path / "workspace" / "01_basics" / "01_init" / "file.txt"
+
+    change_sequence = [{}, {f: 1.0}]
+    idx = 0
+
+    def fake_collect(_directory):
+        nonlocal idx
+        val = change_sequence[min(idx, len(change_sequence) - 1)]
+        idx += 1
+        return val
+
+    completed = []
+
+    with (
+        mock.patch("gitgym.watcher.EXERCISES_DIR", tmp_path / "exercises"),
+        mock.patch("gitgym.watcher.WORKSPACE_DIR", tmp_path / "workspace"),
+        mock.patch("gitgym.watcher.time.sleep"),
+        mock.patch("gitgym.watcher._collect_mtimes", side_effect=fake_collect),
+        mock.patch("gitgym.watcher.run_verify", return_value=(True, "Done!")),
+    ):
+        watch_and_verify(
+            exercise, poll_interval=0, on_completed=lambda: completed.append(True)
+        )
+
+    assert completed == [True]
+
+
+def test_watch_and_verify_does_not_call_on_completed_on_failure(tmp_path):
+    """watch_and_verify does not invoke on_completed when verify fails."""
+    exercise = _setup_watch_and_verify(tmp_path)
+    f = tmp_path / "workspace" / "01_basics" / "01_init" / "file.txt"
+
+    # Two changes: both fail; we stop after two by raising KeyboardInterrupt
+    call_count = 0
+
+    def fake_collect(_directory):
+        nonlocal call_count
+        call_count += 1
+        # Alternate between two states to produce two changes
+        return {f: float(call_count)}
+
+    completed = []
+
+    def fake_verify(_exercise):
+        return (False, "Not done yet.")
+
+    # We stop after the second failure via KeyboardInterrupt from our side
+    verify_calls = []
+
+    def counting_verify(_exercise):
+        verify_calls.append(1)
+        if len(verify_calls) >= 2:
+            raise KeyboardInterrupt
+        return (False, "Not done yet.")
+
+    with (
+        mock.patch("gitgym.watcher.EXERCISES_DIR", tmp_path / "exercises"),
+        mock.patch("gitgym.watcher.WORKSPACE_DIR", tmp_path / "workspace"),
+        mock.patch("gitgym.watcher.time.sleep"),
+        mock.patch("gitgym.watcher._collect_mtimes", side_effect=fake_collect),
+        mock.patch("gitgym.watcher.run_verify", side_effect=counting_verify),
+    ):
+        watch_and_verify(
+            exercise, poll_interval=0, on_completed=lambda: completed.append(True)
+        )
+
+    assert completed == []
+
+
+def test_watch_and_verify_continues_after_failed_verify(tmp_path):
+    """watch_and_verify keeps watching after a failed verify and stops on success."""
+    exercise = _setup_watch_and_verify(tmp_path)
+    f = tmp_path / "workspace" / "01_basics" / "01_init" / "file.txt"
+
+    call_count = 0
+
+    def fake_collect(_directory):
+        nonlocal call_count
+        call_count += 1
+        return {f: float(call_count)}
+
+    verify_calls = []
+
+    def fake_verify(_exercise):
+        verify_calls.append(1)
+        # Fail first, succeed second
+        if len(verify_calls) == 1:
+            return (False, "Not yet.")
+        return (True, "Done!")
+
+    completed = []
+
+    with (
+        mock.patch("gitgym.watcher.EXERCISES_DIR", tmp_path / "exercises"),
+        mock.patch("gitgym.watcher.WORKSPACE_DIR", tmp_path / "workspace"),
+        mock.patch("gitgym.watcher.time.sleep"),
+        mock.patch("gitgym.watcher._collect_mtimes", side_effect=fake_collect),
+        mock.patch("gitgym.watcher.run_verify", side_effect=fake_verify),
+    ):
+        watch_and_verify(
+            exercise, poll_interval=0, on_completed=lambda: completed.append(True)
+        )
+
+    assert len(verify_calls) == 2
+    assert completed == [True]
+
+
+def test_watch_and_verify_stops_on_keyboard_interrupt(tmp_path):
+    """watch_and_verify returns gracefully when interrupted by Ctrl-C."""
+    exercise = _setup_watch_and_verify(tmp_path)
+
+    def fake_collect(_directory):
+        # Never change → generator never yields; KeyboardInterrupt fires from sleep
+        return {}
+
+    sleep_calls = []
+
+    def fake_sleep(_t):
+        sleep_calls.append(1)
+        if len(sleep_calls) >= 2:
+            raise KeyboardInterrupt
+
+    with (
+        mock.patch("gitgym.watcher.EXERCISES_DIR", tmp_path / "exercises"),
+        mock.patch("gitgym.watcher.WORKSPACE_DIR", tmp_path / "workspace"),
+        mock.patch("gitgym.watcher.time.sleep", side_effect=fake_sleep),
+        mock.patch("gitgym.watcher._collect_mtimes", side_effect=fake_collect),
+    ):
+        # Should not raise
+        watch_and_verify(exercise, poll_interval=0)
