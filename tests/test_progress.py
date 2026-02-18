@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 from unittest import mock
 
-from gitgym.progress import load_progress, save_progress
+from gitgym.progress import get_exercise_status, load_progress, save_progress
 
 
 def _patch_progress_file(tmp_path: Path):
@@ -57,6 +57,68 @@ def test_save_progress_creates_parent_dirs(tmp_path):
         save_progress(data)
 
     assert progress_file.exists()
+
+
+def test_get_exercise_status_not_started_when_absent(tmp_path):
+    with _patch_progress_file(tmp_path):
+        result = get_exercise_status("01_basics/01_init")
+    assert result == "not_started"
+
+
+def test_get_exercise_status_in_progress(tmp_path):
+    progress_file = tmp_path / "progress.json"
+    data = {
+        "version": 1,
+        "exercises": {
+            "01_basics/01_init": {
+                "status": "in_progress",
+                "started_at": "2026-02-16T10:30:00Z",
+                "hints_used": 0,
+            }
+        },
+    }
+    progress_file.write_text(json.dumps(data))
+
+    with mock.patch("gitgym.progress.PROGRESS_FILE", progress_file):
+        result = get_exercise_status("01_basics/01_init")
+
+    assert result == "in_progress"
+
+
+def test_get_exercise_status_completed(tmp_path):
+    progress_file = tmp_path / "progress.json"
+    data = {
+        "version": 1,
+        "exercises": {
+            "01_basics/01_init": {
+                "status": "completed",
+                "completed_at": "2026-02-16T10:30:00Z",
+                "hints_used": 2,
+            }
+        },
+    }
+    progress_file.write_text(json.dumps(data))
+
+    with mock.patch("gitgym.progress.PROGRESS_FILE", progress_file):
+        result = get_exercise_status("01_basics/01_init")
+
+    assert result == "completed"
+
+
+def test_get_exercise_status_other_exercise_not_started(tmp_path):
+    progress_file = tmp_path / "progress.json"
+    data = {
+        "version": 1,
+        "exercises": {
+            "01_basics/01_init": {"status": "completed", "hints_used": 0},
+        },
+    }
+    progress_file.write_text(json.dumps(data))
+
+    with mock.patch("gitgym.progress.PROGRESS_FILE", progress_file):
+        result = get_exercise_status("01_basics/02_staging")
+
+    assert result == "not_started"
 
 
 def test_save_and_load_roundtrip(tmp_path):

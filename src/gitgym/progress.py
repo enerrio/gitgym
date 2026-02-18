@@ -16,3 +16,12 @@ def save_progress(data: dict) -> None:
     PROGRESS_FILE.parent.mkdir(parents=True, exist_ok=True)
     with open(PROGRESS_FILE, "w") as f:
         json.dump(data, f, indent=2)
+
+
+def get_exercise_status(exercise_key: str) -> str:
+    """Return the status of an exercise: 'not_started', 'in_progress', or 'completed'."""
+    data = load_progress()
+    exercise = data.get("exercises", {}).get(exercise_key)
+    if exercise is None:
+        return "not_started"
+    return exercise.get("status", "not_started")
