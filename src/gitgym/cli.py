@@ -8,6 +8,7 @@ from gitgym.display import print_exercise_header, print_exercise_list
 from gitgym.exercise import Exercise, load_all_exercises
 from gitgym.progress import (
     get_current_exercise,
+    increment_hints_used,
     load_progress,
     mark_completed,
     mark_in_progress,
@@ -211,3 +212,51 @@ def verify_exercise():
             click.style("Not quite right yet. Keep trying!", fg="yellow"), err=True
         )
         raise SystemExit(1)
+
+
+@main.command("hint")
+def hint_exercise():
+    """Show the next progressive hint for the current exercise."""
+    current_key = get_current_exercise()
+    if current_key is None:
+        click.echo(
+            click.style("No exercise is currently in progress.", fg="yellow"),
+            err=True,
+        )
+        click.echo(
+            "Run 'gitgym start' or 'gitgym list' to begin an exercise.", err=True
+        )
+        raise SystemExit(1)
+
+    exercises = load_all_exercises()
+    target = None
+    for exercise in exercises:
+        if _exercise_key(exercise) == current_key:
+            target = exercise
+            break
+
+    if target is None:
+        click.echo(
+            click.style(
+                f"Error: Exercise '{current_key}' not found in exercise definitions.",
+                fg="red",
+            ),
+            err=True,
+        )
+        raise SystemExit(1)
+
+    progress = load_progress()
+    hints_used = progress.get("exercises", {}).get(current_key, {}).get("hints_used", 0)
+    total_hints = len(target.hints)
+
+    if hints_used >= total_hints:
+        click.echo(click.style("No more hints available.", fg="yellow"))
+        return
+
+    hint_text = target.hints[hints_used]
+    click.echo(f"Hint {hints_used + 1}/{total_hints}: {hint_text}")
+
+    if hints_used + 1 >= total_hints:
+        click.echo("(No more hints available.)")
+
+    increment_hints_used(current_key)
