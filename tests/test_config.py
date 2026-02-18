@@ -23,12 +23,11 @@ def test_exercises_dir_points_to_exercises_folder():
     assert EXERCISES_DIR.name == "exercises"
 
 
-def test_exercises_dir_exists():
-    # The exercises/ directory may not exist yet during development,
-    # but the path should resolve to the project root's exercises/ folder.
-    # Check that it is relative to the package source.
+def test_exercises_dir_is_inside_package():
+    # exercises/ is included in the package (alongside config.py),
+    # so EXERCISES_DIR should be <package_dir>/exercises.
     import gitgym.config as config_module
 
     package_dir = Path(config_module.__file__).parent
-    expected = package_dir.parent.parent / "exercises"
+    expected = package_dir / "exercises"
     assert EXERCISES_DIR == expected

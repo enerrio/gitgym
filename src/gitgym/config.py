@@ -6,4 +6,4 @@ WORKSPACE_DIR = GITGYM_HOME / "exercises"
 PROGRESS_FILE = GITGYM_HOME / "progress.json"
 
 # Package-relative exercises directory (shipped with the package)
-EXERCISES_DIR = Path(__file__).parent.parent.parent / "exercises"
+EXERCISES_DIR = Path(__file__).parent / "exercises"
