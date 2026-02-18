@@ -51,3 +51,35 @@ def run_setup(exercise: Exercise) -> bool:
         return False
 
     return True
+
+
+def run_verify(exercise: Exercise) -> tuple[bool, str]:
+    """Run verify.sh for the exercise, passing the workspace path as $1.
+
+    Returns (True, output) on success (exit code 0), (False, output) on failure.
+    Handles missing scripts, non-executable scripts, and non-zero exit codes gracefully.
+    """
+    verify_script = exercise.path / "verify.sh"
+
+    if not verify_script.exists():
+        msg = f"Error: verify.sh not found for exercise '{exercise.name}' at {verify_script}"
+        return False, msg
+
+    if not os.access(verify_script, os.X_OK):
+        msg = (
+            f"Error: verify.sh for exercise '{exercise.name}' is not executable.\n"
+            f"Fix with: chmod +x {verify_script}"
+        )
+        return False, msg
+
+    workspace_exercise_path = _workspace_path(exercise)
+
+    result = subprocess.run(
+        [str(verify_script), str(workspace_exercise_path)],
+        capture_output=True,
+        text=True,
+    )
+
+    output = (result.stdout + result.stderr).strip()
+    success = result.returncode == 0
+    return success, output

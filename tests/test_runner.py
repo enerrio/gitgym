@@ -7,7 +7,7 @@ from unittest import mock
 import pytest
 
 from gitgym.exercise import Exercise
-from gitgym.runner import run_setup
+from gitgym.runner import run_setup, run_verify
 
 
 def _make_exercise(exercise_dir: Path, name: str = "test_exercise") -> Exercise:
@@ -293,3 +293,161 @@ def test_run_setup_is_idempotent(tmp_path):
 
     assert result1 is True
     assert result2 is True
+
+
+# --- run_verify tests ---
+
+
+def test_run_verify_returns_true_on_success(tmp_path):
+    exercises_dir = tmp_path / "exercises" / "01_basics" / "01_init"
+    exercises_dir.mkdir(parents=True)
+    workspace_dir = tmp_path / "workspace"
+    (workspace_dir / "01_basics" / "01_init").mkdir(parents=True)
+
+    _write_script(
+        exercises_dir / "verify.sh",
+        textwrap.dedent("""\
+            #!/usr/bin/env bash
+            set -euo pipefail
+            echo "Great job!"
+            exit 0
+        """),
+    )
+
+    exercise = _make_exercise(exercises_dir)
+
+    with (
+        mock.patch("gitgym.runner.EXERCISES_DIR", tmp_path / "exercises"),
+        mock.patch("gitgym.runner.WORKSPACE_DIR", workspace_dir),
+    ):
+        success, output = run_verify(exercise)
+
+    assert success is True
+    assert "Great job!" in output
+
+
+def test_run_verify_returns_false_on_failure(tmp_path):
+    exercises_dir = tmp_path / "exercises" / "01_basics" / "01_init"
+    exercises_dir.mkdir(parents=True)
+    workspace_dir = tmp_path / "workspace"
+    (workspace_dir / "01_basics" / "01_init").mkdir(parents=True)
+
+    _write_script(
+        exercises_dir / "verify.sh",
+        textwrap.dedent("""\
+            #!/usr/bin/env bash
+            echo "Not done yet."
+            exit 1
+        """),
+    )
+
+    exercise = _make_exercise(exercises_dir)
+
+    with (
+        mock.patch("gitgym.runner.EXERCISES_DIR", tmp_path / "exercises"),
+        mock.patch("gitgym.runner.WORKSPACE_DIR", workspace_dir),
+    ):
+        success, output = run_verify(exercise)
+
+    assert success is False
+    assert "Not done yet." in output
+
+
+def test_run_verify_missing_script_returns_false(tmp_path):
+    exercises_dir = tmp_path / "exercises" / "01_basics" / "01_init"
+    exercises_dir.mkdir(parents=True)
+    workspace_dir = tmp_path / "workspace"
+
+    exercise = _make_exercise(exercises_dir)
+
+    with (
+        mock.patch("gitgym.runner.EXERCISES_DIR", tmp_path / "exercises"),
+        mock.patch("gitgym.runner.WORKSPACE_DIR", workspace_dir),
+    ):
+        success, output = run_verify(exercise)
+
+    assert success is False
+    assert "Error" in output
+    assert "verify.sh" in output
+
+
+def test_run_verify_non_executable_script_returns_false(tmp_path):
+    exercises_dir = tmp_path / "exercises" / "01_basics" / "01_init"
+    exercises_dir.mkdir(parents=True)
+    workspace_dir = tmp_path / "workspace"
+
+    _write_script(
+        exercises_dir / "verify.sh",
+        "#!/usr/bin/env bash\nexit 0\n",
+        executable=False,
+    )
+
+    exercise = _make_exercise(exercises_dir)
+
+    with (
+        mock.patch("gitgym.runner.EXERCISES_DIR", tmp_path / "exercises"),
+        mock.patch("gitgym.runner.WORKSPACE_DIR", workspace_dir),
+    ):
+        success, output = run_verify(exercise)
+
+    assert success is False
+    assert "not executable" in output
+
+
+def test_run_verify_captures_stdout_and_stderr(tmp_path):
+    exercises_dir = tmp_path / "exercises" / "01_basics" / "01_init"
+    exercises_dir.mkdir(parents=True)
+    workspace_dir = tmp_path / "workspace"
+    (workspace_dir / "01_basics" / "01_init").mkdir(parents=True)
+
+    _write_script(
+        exercises_dir / "verify.sh",
+        textwrap.dedent("""\
+            #!/usr/bin/env bash
+            echo "stdout message"
+            echo "stderr message" >&2
+            exit 1
+        """),
+    )
+
+    exercise = _make_exercise(exercises_dir)
+
+    with (
+        mock.patch("gitgym.runner.EXERCISES_DIR", tmp_path / "exercises"),
+        mock.patch("gitgym.runner.WORKSPACE_DIR", workspace_dir),
+    ):
+        success, output = run_verify(exercise)
+
+    assert success is False
+    assert "stdout message" in output
+    assert "stderr message" in output
+
+
+def test_run_verify_passes_workspace_path_as_argument(tmp_path):
+    exercises_dir = tmp_path / "exercises" / "01_basics" / "01_init"
+    exercises_dir.mkdir(parents=True)
+    workspace_dir = tmp_path / "workspace"
+    (workspace_dir / "01_basics" / "01_init").mkdir(parents=True)
+
+    marker = tmp_path / "received_arg.txt"
+    _write_script(
+        exercises_dir / "verify.sh",
+        textwrap.dedent(f"""\
+            #!/usr/bin/env bash
+            set -euo pipefail
+            echo "$1" > "{marker}"
+            exit 0
+        """),
+    )
+
+    exercise = _make_exercise(exercises_dir)
+
+    with (
+        mock.patch("gitgym.runner.EXERCISES_DIR", tmp_path / "exercises"),
+        mock.patch("gitgym.runner.WORKSPACE_DIR", workspace_dir),
+    ):
+        run_verify(exercise)
+
+    expected_path = workspace_dir / "01_basics" / "01_init"
+    received = marker.read_text().strip()
+    assert received == str(expected_path)
