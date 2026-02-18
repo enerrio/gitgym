@@ -69,3 +69,9 @@ def reset_exercise_progress(exercise_key: str) -> None:
     data = load_progress()
     data["exercises"].pop(exercise_key, None)
     save_progress(data)
+
+
+def reset_all_progress() -> None:
+    """Delete the progress file, clearing all progress."""
+    if PROGRESS_FILE.exists():
+        PROGRESS_FILE.unlink()
