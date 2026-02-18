@@ -25,3 +25,8 @@ include = [
     "src/",
     "exercises/",
 ]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.2",
+]
