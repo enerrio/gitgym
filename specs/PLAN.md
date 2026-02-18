@@ -35,7 +35,7 @@ Each task is small and independently testable. Complete them in order; check off
 
 ## Phase 4: Exercise Runner (setup & verify)
 
-- [ ] Create `src/gitgym/runner.py` with `run_setup(exercise: Exercise) -> bool` that runs `setup.sh` via `subprocess`, passing the workspace exercise path as `$1`; returns True on success
+- [x] Create `src/gitgym/runner.py` with `run_setup(exercise: Exercise) -> bool` that runs `setup.sh` via `subprocess`, passing the workspace exercise path as `$1`; returns True on success
 - [ ] Implement `run_verify(exercise: Exercise) -> tuple[bool, str]` that runs `verify.sh`, captures stdout/stderr, returns `(success, output)`
 - [ ] Ensure both functions handle missing scripts, non-executable scripts, and non-zero exit codes gracefully with clear error messages
 - [ ] Write tests: create a trivial setup.sh and verify.sh in a temp dir, confirm `run_setup` creates expected files and `run_verify` returns correct pass/fail
