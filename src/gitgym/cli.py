@@ -3,9 +3,11 @@ import subprocess
 
 import click
 
-from gitgym.display import print_exercise_list
-from gitgym.exercise import load_all_exercises
-from gitgym.progress import load_progress
+from gitgym.config import WORKSPACE_DIR
+from gitgym.display import print_exercise_header, print_exercise_list
+from gitgym.exercise import Exercise, load_all_exercises
+from gitgym.progress import load_progress, mark_in_progress
+from gitgym.runner import run_setup
 
 
 class GitGymGroup(click.Group):
@@ -56,3 +58,64 @@ def list_exercises():
     exercises = load_all_exercises()
     progress = load_progress()
     print_exercise_list(exercises, progress)
+
+
+def _exercise_key(exercise: Exercise) -> str:
+    """Derive the progress key (topic_dir/exercise_dir) from the exercise path."""
+    return f"{exercise.path.parent.name}/{exercise.path.name}"
+
+
+def _find_next_incomplete(exercises: list[Exercise], progress: dict) -> Exercise | None:
+    """Return the first exercise that is not completed."""
+    ex_progress = progress.get("exercises", {})
+    for exercise in exercises:
+        key = _exercise_key(exercise)
+        status = ex_progress.get(key, {}).get("status", "not_started")
+        if status != "completed":
+            return exercise
+    return None
+
+
+def _find_by_name(exercises: list[Exercise], name: str) -> Exercise | None:
+    """Return the exercise with the given name, or None if not found."""
+    for exercise in exercises:
+        if exercise.name == name:
+            return exercise
+    return None
+
+
+@main.command("start")
+@click.argument("exercise", required=False)
+def start_exercise(exercise: str | None):
+    """Set up an exercise repo. If no name given, starts the next incomplete exercise."""
+    exercises = load_all_exercises()
+    progress = load_progress()
+
+    if exercise:
+        target = _find_by_name(exercises, exercise)
+        if target is None:
+            click.echo(
+                click.style(f"Error: No exercise named '{exercise}' found.", fg="red"),
+                err=True,
+            )
+            click.echo("Run 'gitgym list' to see available exercises.", err=True)
+            raise SystemExit(1)
+    else:
+        target = _find_next_incomplete(exercises, progress)
+        if target is None:
+            click.echo(
+                click.style("All exercises are completed! Great work.", fg="green")
+            )
+            return
+
+    success = run_setup(target)
+    if not success:
+        raise SystemExit(1)
+
+    key = _exercise_key(target)
+    mark_in_progress(key)
+
+    workspace_path = WORKSPACE_DIR / target.path.parent.name / target.path.name
+    click.echo(click.style(f"Exercise directory: {workspace_path}", fg="cyan"))
+    click.echo(f"  cd {workspace_path}\n")
+    print_exercise_header(target)
