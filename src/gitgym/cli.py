@@ -3,6 +3,7 @@ import subprocess
 
 import click
 
+from gitgym import __version__
 from gitgym.config import WORKSPACE_DIR
 from gitgym.display import (
     print_exercise_header,
@@ -61,6 +62,7 @@ def _is_git_installed() -> bool:
 
 
 @click.group(cls=GitGymGroup)
+@click.version_option(version=__version__, prog_name="gitgym")
 def main():
     """gitgym - Learn git through interactive exercises."""
 
