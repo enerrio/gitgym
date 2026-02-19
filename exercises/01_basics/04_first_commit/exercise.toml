@@ -1,0 +1,22 @@
+[exercise]
+name = "first_commit"
+topic = "Basics"
+title = "Create Your First Commit"
+description = """
+Staging a file is only half the story — you still need to save those \
+changes permanently with `git commit`. In this exercise, `hello.txt` is \
+already staged and ready to go. Create a commit with a meaningful message \
+to record the snapshot.
+"""
+
+[goal]
+summary = "The repo has at least one commit with a non-empty message."
+
+[[hints]]
+text = "Use `git log` to see the commit history (it will be empty until you commit)."
+
+[[hints]]
+text = "Look at the `git commit` command."
+
+[[hints]]
+text = "Run `git commit -m \"Your message here\"` to create the commit."
