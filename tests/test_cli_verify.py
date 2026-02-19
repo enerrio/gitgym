@@ -69,6 +69,9 @@ def _invoke_verify(current_key, exercises):
 def _invoke_verify_with_real_runner(
     current_key, exercises, workspace_dir, progress_file, exercises_dir
 ):
+    # Ensure the workspace exercise directory exists so run_verify doesn't
+    # fail with a "repo not found" error before reaching the script check.
+    (workspace_dir / current_key).mkdir(parents=True, exist_ok=True)
     runner = CliRunner()
     with ExitStack() as stack:
         stack.enter_context(patch("gitgym.cli._is_git_installed", return_value=True))
@@ -272,3 +275,70 @@ def test_verify_failure_does_not_mark_completed():
 
         data = json.loads(progress_file.read_text())
         assert data["exercises"]["01_basics/01_init"]["status"] == "in_progress"
+
+
+# --- Tests for missing/corrupted exercise repo ---
+
+
+def test_verify_missing_workspace_exits_nonzero():
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmpdir = Path(tmpdir)
+        workspace = tmpdir / "workspace"
+        workspace.mkdir()
+        # Do NOT create the workspace exercise subdirectory
+        progress_file = tmpdir / "progress.json"
+        exercises_dir = tmpdir / "exercises"
+
+        ex = _make_real_exercise(exercises_dir, verify_exits_zero=True)
+
+        runner = CliRunner()
+        with ExitStack() as stack:
+            stack.enter_context(
+                patch("gitgym.cli._is_git_installed", return_value=True)
+            )
+            stack.enter_context(
+                patch(
+                    "gitgym.cli.get_current_exercise", return_value="01_basics/01_init"
+                )
+            )
+            stack.enter_context(
+                patch("gitgym.cli.load_all_exercises", return_value=[ex])
+            )
+            stack.enter_context(patch("gitgym.runner.WORKSPACE_DIR", workspace))
+            stack.enter_context(patch("gitgym.runner.EXERCISES_DIR", exercises_dir))
+            stack.enter_context(patch("gitgym.progress.PROGRESS_FILE", progress_file))
+            result = runner.invoke(main, ["verify"])
+
+        assert result.exit_code != 0
+
+
+def test_verify_missing_workspace_suggests_reset():
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmpdir = Path(tmpdir)
+        workspace = tmpdir / "workspace"
+        workspace.mkdir()
+        # Do NOT create the workspace exercise subdirectory
+        progress_file = tmpdir / "progress.json"
+        exercises_dir = tmpdir / "exercises"
+
+        ex = _make_real_exercise(exercises_dir, verify_exits_zero=True)
+
+        runner = CliRunner()
+        with ExitStack() as stack:
+            stack.enter_context(
+                patch("gitgym.cli._is_git_installed", return_value=True)
+            )
+            stack.enter_context(
+                patch(
+                    "gitgym.cli.get_current_exercise", return_value="01_basics/01_init"
+                )
+            )
+            stack.enter_context(
+                patch("gitgym.cli.load_all_exercises", return_value=[ex])
+            )
+            stack.enter_context(patch("gitgym.runner.WORKSPACE_DIR", workspace))
+            stack.enter_context(patch("gitgym.runner.EXERCISES_DIR", exercises_dir))
+            stack.enter_context(patch("gitgym.progress.PROGRESS_FILE", progress_file))
+            result = runner.invoke(main, ["verify"])
+
+        assert "gitgym reset" in result.output

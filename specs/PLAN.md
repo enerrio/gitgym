@@ -72,7 +72,7 @@ Each task is small and independently testable. Complete them in order; check off
 
 - [x] Add startup check for `git` binary availability; print install instructions if missing
 - [x] Handle "no exercise in progress" for `describe`, `verify`, `hint`, `watch` with a helpful message
-- [ ] Handle corrupted/missing exercise repo (suggest `gitgym reset`)
+- [x] Handle corrupted/missing exercise repo (suggest `gitgym reset`)
 - [ ] Handle setup.sh failure (print stderr, suggest filing a bug)
 - [ ] Handle verify.sh unexpected crash vs. normal failure (distinguish script error from goal-not-met)
 

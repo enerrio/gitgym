@@ -4,8 +4,6 @@ import textwrap
 from pathlib import Path
 from unittest import mock
 
-import pytest
-
 from gitgym.exercise import Exercise
 from gitgym.runner import run_setup, run_verify
 
@@ -357,6 +355,7 @@ def test_run_verify_missing_script_returns_false(tmp_path):
     exercises_dir = tmp_path / "exercises" / "01_basics" / "01_init"
     exercises_dir.mkdir(parents=True)
     workspace_dir = tmp_path / "workspace"
+    (workspace_dir / "01_basics" / "01_init").mkdir(parents=True)
 
     exercise = _make_exercise(exercises_dir)
 
@@ -375,6 +374,7 @@ def test_run_verify_non_executable_script_returns_false(tmp_path):
     exercises_dir = tmp_path / "exercises" / "01_basics" / "01_init"
     exercises_dir.mkdir(parents=True)
     workspace_dir = tmp_path / "workspace"
+    (workspace_dir / "01_basics" / "01_init").mkdir(parents=True)
 
     _write_script(
         exercises_dir / "verify.sh",
@@ -451,3 +451,40 @@ def test_run_verify_passes_workspace_path_as_argument(tmp_path):
     expected_path = workspace_dir / "01_basics" / "01_init"
     received = marker.read_text().strip()
     assert received == str(expected_path)
+
+
+# --- run_verify: missing workspace tests ---
+
+
+def test_run_verify_missing_workspace_returns_false(tmp_path):
+    exercises_dir = tmp_path / "exercises" / "01_basics" / "01_init"
+    exercises_dir.mkdir(parents=True)
+    workspace_dir = tmp_path / "workspace"
+    # Do NOT create the workspace exercise subdirectory
+
+    exercise = _make_exercise(exercises_dir)
+
+    with (
+        mock.patch("gitgym.runner.EXERCISES_DIR", tmp_path / "exercises"),
+        mock.patch("gitgym.runner.WORKSPACE_DIR", workspace_dir),
+    ):
+        success, output = run_verify(exercise)
+
+    assert success is False
+
+
+def test_run_verify_missing_workspace_suggests_reset(tmp_path):
+    exercises_dir = tmp_path / "exercises" / "01_basics" / "01_init"
+    exercises_dir.mkdir(parents=True)
+    workspace_dir = tmp_path / "workspace"
+    # Do NOT create the workspace exercise subdirectory
+
+    exercise = _make_exercise(exercises_dir)
+
+    with (
+        mock.patch("gitgym.runner.EXERCISES_DIR", tmp_path / "exercises"),
+        mock.patch("gitgym.runner.WORKSPACE_DIR", workspace_dir),
+    ):
+        _success, output = run_verify(exercise)
+
+    assert "gitgym reset" in output

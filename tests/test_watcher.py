@@ -725,3 +725,49 @@ def test_polling_does_not_yield_when_file_unchanged(tmp_path):
         t.join(timeout=1.0)
 
     assert yielded == [], "watcher should not yield when no file changes"
+
+
+# --- watch_and_verify: missing workspace tests ---
+
+
+def test_watch_and_verify_missing_workspace_returns_without_watching(tmp_path):
+    """watch_and_verify returns immediately when the workspace directory is missing."""
+    exercises_dir = tmp_path / "exercises" / "01_basics" / "01_init"
+    exercises_dir.mkdir(parents=True)
+    # Do NOT create the workspace directory
+
+    exercise = _make_exercise(exercises_dir)
+
+    watch_calls = []
+
+    def fake_watch(ex, poll_interval=1):
+        watch_calls.append(ex)
+        return
+        yield  # make it a generator
+
+    with (
+        mock.patch("gitgym.watcher.EXERCISES_DIR", tmp_path / "exercises"),
+        mock.patch("gitgym.watcher.WORKSPACE_DIR", tmp_path / "workspace"),
+        mock.patch("gitgym.watcher.watch", side_effect=fake_watch),
+    ):
+        watch_and_verify(exercise, poll_interval=0)
+
+    assert watch_calls == [], "watch() should not be called when workspace is missing"
+
+
+def test_watch_and_verify_missing_workspace_prints_reset_hint(tmp_path, capsys):
+    """watch_and_verify prints a message suggesting gitgym reset when workspace is missing."""
+    exercises_dir = tmp_path / "exercises" / "01_basics" / "01_init"
+    exercises_dir.mkdir(parents=True)
+    # Do NOT create the workspace directory
+
+    exercise = _make_exercise(exercises_dir)
+
+    with (
+        mock.patch("gitgym.watcher.EXERCISES_DIR", tmp_path / "exercises"),
+        mock.patch("gitgym.watcher.WORKSPACE_DIR", tmp_path / "workspace"),
+    ):
+        watch_and_verify(exercise, poll_interval=0)
+
+    captured = capsys.readouterr()
+    assert "gitgym reset" in captured.err

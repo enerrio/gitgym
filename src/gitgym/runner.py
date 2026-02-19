@@ -59,6 +59,15 @@ def run_verify(exercise: Exercise) -> tuple[bool, str]:
     Returns (True, output) on success (exit code 0), (False, output) on failure.
     Handles missing scripts, non-executable scripts, and non-zero exit codes gracefully.
     """
+    workspace_exercise_path = _workspace_path(exercise)
+
+    if not workspace_exercise_path.exists():
+        msg = (
+            f"Exercise repo not found at {workspace_exercise_path}.\n"
+            f"Run 'gitgym reset' to re-create it."
+        )
+        return False, msg
+
     verify_script = exercise.path / "verify.sh"
 
     if not verify_script.exists():
@@ -71,8 +80,6 @@ def run_verify(exercise: Exercise) -> tuple[bool, str]:
             f"Fix with: chmod +x {verify_script}"
         )
         return False, msg
-
-    workspace_exercise_path = _workspace_path(exercise)
 
     result = subprocess.run(
         [str(verify_script), str(workspace_exercise_path)],

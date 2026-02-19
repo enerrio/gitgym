@@ -146,6 +146,18 @@ def watch_and_verify(
         Optional zero-argument callable invoked when the exercise is verified
         successfully (e.g. to mark it completed in progress tracking).
     """
+    workspace = _workspace_path(exercise)
+    if not workspace.exists():
+        click.echo(
+            click.style(
+                f"Exercise repo not found at {workspace}.\n"
+                f"Run 'gitgym reset' to re-create it.",
+                fg="red",
+            ),
+            err=True,
+        )
+        return
+
     click.echo(
         click.style(
             f"Watching '{exercise.title}' — press Ctrl+C to stop.",
