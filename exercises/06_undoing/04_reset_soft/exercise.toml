@@ -1,0 +1,26 @@
+[exercise]
+name = "reset_soft"
+topic = "Undoing Changes"
+title = "Uncommit but Keep Changes Staged"
+description = """
+`git reset --soft HEAD~1` moves the branch pointer back by one commit but \
+leaves the changes from that commit **in the staging area**. This is useful \
+when you committed too soon and want to re-do the commit with a better \
+message or combined with other changes.
+
+In this exercise the last commit ("WIP: half-done feature") was made \
+prematurely. Use `git reset --soft` to undo that commit while keeping the \
+changes staged so you can amend or re-commit them.
+"""
+
+[goal]
+summary = "The last commit is undone; the changes are still staged (in the index)."
+
+[[hints]]
+text = "Use `git log --oneline` to see the current commits."
+
+[[hints]]
+text = "Look at the `git reset --soft` command."
+
+[[hints]]
+text = "Run `git reset --soft HEAD~1` to undo the last commit while keeping changes staged."

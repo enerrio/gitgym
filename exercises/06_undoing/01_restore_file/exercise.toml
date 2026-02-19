@@ -1,0 +1,27 @@
+[exercise]
+name = "restore_file"
+topic = "Undoing Changes"
+title = "Restore a File to Its Last Committed State"
+description = """
+Sometimes you edit a file and then realize you want to throw away those \
+changes and go back to how it looked in the last commit. \
+`git restore <file>` does exactly that — it discards working directory \
+changes and resets the file to its committed version.
+
+In this exercise, `config.txt` was committed with some settings, but \
+someone modified it afterwards and the changes were never staged. Use \
+`git restore` to discard the working directory changes and bring the file \
+back to its last committed state.
+"""
+
+[goal]
+summary = "config.txt should match its last committed state (no working directory modifications)."
+
+[[hints]]
+text = "Use `git status` to see that config.txt has been modified."
+
+[[hints]]
+text = "Look at the `git restore` command (or the older `git checkout -- <file>`)."
+
+[[hints]]
+text = "Run `git restore config.txt` to discard the working directory changes."

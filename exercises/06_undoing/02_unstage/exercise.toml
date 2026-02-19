@@ -1,0 +1,24 @@
+[exercise]
+name = "unstage"
+topic = "Undoing Changes"
+title = "Unstage a File Without Losing Changes"
+description = """
+You've staged a file with `git add`, but then realised you're not ready to \
+commit it yet. `git restore --staged <file>` removes the file from the \
+staging area while keeping your changes safely in the working directory.
+
+In this exercise, `notes.txt` has been accidentally staged. Unstage it \
+without discarding the changes you made to it.
+"""
+
+[goal]
+summary = "notes.txt should be modified in the working directory but NOT staged."
+
+[[hints]]
+text = "Run `git status` to confirm that notes.txt is currently staged."
+
+[[hints]]
+text = "Look at the `git restore --staged` command (or the older `git reset HEAD <file>`)."
+
+[[hints]]
+text = "Run `git restore --staged notes.txt` to move it back to unstaged."

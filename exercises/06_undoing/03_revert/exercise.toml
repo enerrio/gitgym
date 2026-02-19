@@ -1,0 +1,27 @@
+[exercise]
+name = "revert"
+topic = "Undoing Changes"
+title = "Revert a Commit Without Rewriting History"
+description = """
+`git revert <hash>` creates a **new** commit that undoes the changes \
+introduced by a previous commit. Unlike `git reset`, revert does not \
+rewrite history — the original commit stays in the log, and a new \
+"revert" commit is added on top. This makes it safe to use on shared \
+branches.
+
+In this repository a commit with the message "Add debug output" \
+introduced an unwanted line in `app.py`. Revert that commit to \
+remove the debug output without altering the prior history.
+"""
+
+[goal]
+summary = "A revert commit exists that undoes 'Add debug output', and app.py no longer contains the debug line."
+
+[[hints]]
+text = "Use `git log --oneline` to find the hash of the 'Add debug output' commit."
+
+[[hints]]
+text = "Look at the `git revert` command."
+
+[[hints]]
+text = "Run `git revert <hash>` (use --no-edit to keep the default message, or type your own)."

@@ -1,0 +1,27 @@
+[exercise]
+name = "reset_mixed"
+topic = "Undoing Changes"
+title = "Uncommit and Unstage Changes"
+description = """
+`git reset` (without a flag, or with `--mixed`) moves the branch pointer \
+back and also clears the staging area, but leaves your changes in the \
+working directory. This lets you revisit what you were working on and \
+decide what to stage and commit more carefully.
+
+In this exercise the last commit ("Add everything at once") lumped \
+several unrelated changes together. Use `git reset HEAD~1` to undo \
+that commit and unstage all the changes. The files will still be \
+present in your working directory.
+"""
+
+[goal]
+summary = "The last commit is undone and changes are in the working directory but NOT staged."
+
+[[hints]]
+text = "Use `git log --oneline` to see the commits."
+
+[[hints]]
+text = "Look at the `git reset` command (default mode is --mixed)."
+
+[[hints]]
+text = "Run `git reset HEAD~1` to undo the last commit and unstage all changes."
