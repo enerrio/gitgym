@@ -592,3 +592,136 @@ def test_watch_with_watchdog_observer_stopped_on_generator_close(tmp_path):
 
     assert stopped == [True]
     assert joined == [True]
+
+
+# --- Integration tests: real file modification in temp dir ---
+
+
+def _setup_real_exercise(tmp_path):
+    """Create real exercise and workspace directories, return (exercise, workspace_dir)."""
+    exercises_dir = tmp_path / "exercises" / "01_basics" / "01_init"
+    exercises_dir.mkdir(parents=True)
+    workspace_dir = tmp_path / "workspace" / "01_basics" / "01_init"
+    workspace_dir.mkdir(parents=True)
+    exercise = _make_exercise(exercises_dir)
+    return exercise, workspace_dir
+
+
+def test_polling_detects_new_file_in_workspace(tmp_path):
+    """_watch_with_polling yields when a new file appears in the real workspace dir."""
+    exercise, workspace_dir = _setup_real_exercise(tmp_path)
+
+    poll_count = 0
+
+    def fake_sleep(_t):
+        nonlocal poll_count
+        poll_count += 1
+        # After the initial snapshot is taken, create a new file on first sleep
+        if poll_count == 1:
+            (workspace_dir / "newfile.txt").write_text("hello")
+
+    with (
+        mock.patch("gitgym.watcher.EXERCISES_DIR", tmp_path / "exercises"),
+        mock.patch("gitgym.watcher.WORKSPACE_DIR", tmp_path / "workspace"),
+        mock.patch("gitgym.watcher.time.sleep", side_effect=fake_sleep),
+    ):
+        gen = _watch_with_polling(exercise, poll_interval=0)
+        next(gen)  # should yield after detecting the new file
+
+    assert poll_count >= 1
+
+
+def test_polling_detects_file_modification_in_workspace(tmp_path):
+    """_watch_with_polling yields when an existing file's mtime changes."""
+    import os
+
+    exercise, workspace_dir = _setup_real_exercise(tmp_path)
+
+    # Create a file before watching starts so it is included in the initial snapshot
+    existing_file = workspace_dir / "hello.txt"
+    existing_file.write_text("original content")
+
+    poll_count = 0
+
+    def fake_sleep(_t):
+        nonlocal poll_count
+        poll_count += 1
+        if poll_count == 1:
+            # Bump mtime explicitly so detection is filesystem-agnostic
+            current_mtime = existing_file.stat().st_mtime
+            os.utime(existing_file, (current_mtime + 1.0, current_mtime + 1.0))
+
+    with (
+        mock.patch("gitgym.watcher.EXERCISES_DIR", tmp_path / "exercises"),
+        mock.patch("gitgym.watcher.WORKSPACE_DIR", tmp_path / "workspace"),
+        mock.patch("gitgym.watcher.time.sleep", side_effect=fake_sleep),
+    ):
+        gen = _watch_with_polling(exercise, poll_interval=0)
+        next(gen)  # should yield after detecting the mtime change
+
+    assert poll_count >= 1
+
+
+def test_polling_detects_file_deletion_in_workspace(tmp_path):
+    """_watch_with_polling yields when a file is deleted from the workspace."""
+    exercise, workspace_dir = _setup_real_exercise(tmp_path)
+
+    # Create a file before watching starts
+    existing_file = workspace_dir / "todelete.txt"
+    existing_file.write_text("to be deleted")
+
+    poll_count = 0
+
+    def fake_sleep(_t):
+        nonlocal poll_count
+        poll_count += 1
+        if poll_count == 1:
+            existing_file.unlink()
+
+    with (
+        mock.patch("gitgym.watcher.EXERCISES_DIR", tmp_path / "exercises"),
+        mock.patch("gitgym.watcher.WORKSPACE_DIR", tmp_path / "workspace"),
+        mock.patch("gitgym.watcher.time.sleep", side_effect=fake_sleep),
+    ):
+        gen = _watch_with_polling(exercise, poll_interval=0)
+        next(gen)  # should yield after detecting the deletion
+
+    assert poll_count >= 1
+
+
+def test_polling_does_not_yield_when_file_unchanged(tmp_path):
+    """_watch_with_polling does not yield when file content and mtime are stable."""
+    exercise, workspace_dir = _setup_real_exercise(tmp_path)
+
+    # Create a file and capture its mtime so it stays constant
+    stable_file = workspace_dir / "stable.txt"
+    stable_file.write_text("unchanged")
+
+    yielded = []
+    sleep_calls = []
+
+    def fake_sleep(_t):
+        sleep_calls.append(1)
+        # Stop after a few iterations to avoid infinite loop
+        if len(sleep_calls) >= 5:
+            raise KeyboardInterrupt
+
+    with (
+        mock.patch("gitgym.watcher.EXERCISES_DIR", tmp_path / "exercises"),
+        mock.patch("gitgym.watcher.WORKSPACE_DIR", tmp_path / "workspace"),
+        mock.patch("gitgym.watcher.time.sleep", side_effect=fake_sleep),
+    ):
+        gen = _watch_with_polling(exercise, poll_interval=0)
+
+        def _drive():
+            try:
+                next(gen)
+                yielded.append(True)
+            except (StopIteration, KeyboardInterrupt):
+                pass
+
+        t = threading.Thread(target=_drive, daemon=True)
+        t.start()
+        t.join(timeout=1.0)
+
+    assert yielded == [], "watcher should not yield when no file changes"

@@ -66,7 +66,7 @@ Each task is small and independently testable. Complete them in order; check off
 - [x] On detected change, run `verify.sh` and display the result; on success, mark completed and stop
 - [x] Implement `gitgym watch` CLI command that starts watch mode for the current exercise
 - [x] Add optional `watchdog`-based implementation behind a try/except import, falling back to polling
-- [ ] Write tests: modify a file in a temp exercise dir, verify the watcher detects the change
+- [x] Write tests: modify a file in a temp exercise dir, verify the watcher detects the change
 
 ## Phase 8: Error Handling & Edge Cases
 
