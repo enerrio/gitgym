@@ -342,3 +342,137 @@ def test_verify_missing_workspace_suggests_reset():
             result = runner.invoke(main, ["verify"])
 
         assert "gitgym reset" in result.output
+
+
+# --- Tests for unexpected verify.sh crash (script error) ---
+
+
+def _make_crashing_exercise(exercises_dir: Path, exit_code: int = 2) -> Exercise:
+    """Create a real exercise on disk with a verify.sh that exits with an unexpected code."""
+    exercise_dir = exercises_dir / "01_basics" / "01_init"
+    exercise_dir.mkdir(parents=True)
+
+    verify_content = f"#!/usr/bin/env bash\necho 'Script crashed!'\nexit {exit_code}\n"
+    verify_script = exercise_dir / "verify.sh"
+    verify_script.write_text(verify_content)
+    verify_script.chmod(verify_script.stat().st_mode | stat.S_IEXEC)
+
+    return Exercise(
+        name="init",
+        topic="Basics",
+        title="Initialize a Repository",
+        description="Initialize a git repo.",
+        goal_summary="Repo initialized.",
+        hints=["Run git init"],
+        path=exercise_dir,
+    )
+
+
+def test_verify_script_error_exits_nonzero():
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmpdir = Path(tmpdir)
+        workspace = tmpdir / "workspace"
+        workspace.mkdir()
+        progress_file = tmpdir / "progress.json"
+        exercises_dir = tmpdir / "exercises"
+
+        ex = _make_crashing_exercise(exercises_dir, exit_code=2)
+
+        result = _invoke_verify_with_real_runner(
+            "01_basics/01_init", [ex], workspace, progress_file, exercises_dir
+        )
+        assert result.exit_code != 0
+
+
+def test_verify_script_error_prints_error_message():
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmpdir = Path(tmpdir)
+        workspace = tmpdir / "workspace"
+        workspace.mkdir()
+        progress_file = tmpdir / "progress.json"
+        exercises_dir = tmpdir / "exercises"
+
+        ex = _make_crashing_exercise(exercises_dir, exit_code=2)
+
+        result = _invoke_verify_with_real_runner(
+            "01_basics/01_init", [ex], workspace, progress_file, exercises_dir
+        )
+        assert "unexpected error" in result.output.lower()
+
+
+def test_verify_script_error_suggests_reset():
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmpdir = Path(tmpdir)
+        workspace = tmpdir / "workspace"
+        workspace.mkdir()
+        progress_file = tmpdir / "progress.json"
+        exercises_dir = tmpdir / "exercises"
+
+        ex = _make_crashing_exercise(exercises_dir, exit_code=2)
+
+        result = _invoke_verify_with_real_runner(
+            "01_basics/01_init", [ex], workspace, progress_file, exercises_dir
+        )
+        assert "gitgym reset" in result.output
+
+
+def test_verify_script_error_does_not_show_keep_trying():
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmpdir = Path(tmpdir)
+        workspace = tmpdir / "workspace"
+        workspace.mkdir()
+        progress_file = tmpdir / "progress.json"
+        exercises_dir = tmpdir / "exercises"
+
+        ex = _make_crashing_exercise(exercises_dir, exit_code=2)
+
+        result = _invoke_verify_with_real_runner(
+            "01_basics/01_init", [ex], workspace, progress_file, exercises_dir
+        )
+        assert "Keep trying" not in result.output
+
+
+def test_verify_script_error_does_not_mark_completed():
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmpdir = Path(tmpdir)
+        workspace = tmpdir / "workspace"
+        workspace.mkdir()
+        progress_file = tmpdir / "progress.json"
+        exercises_dir = tmpdir / "exercises"
+
+        ex = _make_crashing_exercise(exercises_dir, exit_code=2)
+
+        progress_file.parent.mkdir(parents=True, exist_ok=True)
+        progress_file.write_text(
+            json.dumps(
+                {
+                    "version": 1,
+                    "exercises": {"01_basics/01_init": {"status": "in_progress"}},
+                }
+            )
+        )
+
+        _invoke_verify_with_real_runner(
+            "01_basics/01_init", [ex], workspace, progress_file, exercises_dir
+        )
+
+        data = json.loads(progress_file.read_text())
+        assert data["exercises"]["01_basics/01_init"]["status"] == "in_progress"
+
+
+def test_verify_exit_1_does_not_show_unexpected_error():
+    """Exit code 1 should show 'Keep trying', not the script error message."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmpdir = Path(tmpdir)
+        workspace = tmpdir / "workspace"
+        workspace.mkdir()
+        progress_file = tmpdir / "progress.json"
+        exercises_dir = tmpdir / "exercises"
+
+        ex = _make_real_exercise(exercises_dir, verify_exits_zero=False)
+
+        result = _invoke_verify_with_real_runner(
+            "01_basics/01_init", [ex], workspace, progress_file, exercises_dir
+        )
+        assert "Keep trying" in result.output
+        assert "unexpected error" not in result.output.lower()

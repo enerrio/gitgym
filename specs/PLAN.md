@@ -74,7 +74,7 @@ Each task is small and independently testable. Complete them in order; check off
 - [x] Handle "no exercise in progress" for `describe`, `verify`, `hint`, `watch` with a helpful message
 - [x] Handle corrupted/missing exercise repo (suggest `gitgym reset`)
 - [x] Handle setup.sh failure (print stderr, suggest filing a bug)
-- [ ] Handle verify.sh unexpected crash vs. normal failure (distinguish script error from goal-not-met)
+- [x] Handle verify.sh unexpected crash vs. normal failure (distinguish script error from goal-not-met)
 
 ## Phase 9: First Exercise Set (01_basics)
 

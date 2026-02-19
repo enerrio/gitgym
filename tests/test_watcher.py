@@ -299,7 +299,9 @@ def test_watch_and_verify_stops_on_success(tmp_path):
         mock.patch("gitgym.watcher.WORKSPACE_DIR", tmp_path / "workspace"),
         mock.patch("gitgym.watcher.time.sleep"),
         mock.patch("gitgym.watcher._collect_mtimes", side_effect=fake_collect),
-        mock.patch("gitgym.watcher.run_verify", return_value=(True, "Great job!")),
+        mock.patch(
+            "gitgym.watcher.run_verify", return_value=(True, "Great job!", False)
+        ),
     ):
         # Should return without raising
         watch_and_verify(exercise, poll_interval=0)
@@ -326,7 +328,7 @@ def test_watch_and_verify_calls_on_completed_callback(tmp_path):
         mock.patch("gitgym.watcher.WORKSPACE_DIR", tmp_path / "workspace"),
         mock.patch("gitgym.watcher.time.sleep"),
         mock.patch("gitgym.watcher._collect_mtimes", side_effect=fake_collect),
-        mock.patch("gitgym.watcher.run_verify", return_value=(True, "Done!")),
+        mock.patch("gitgym.watcher.run_verify", return_value=(True, "Done!", False)),
     ):
         watch_and_verify(
             exercise, poll_interval=0, on_completed=lambda: completed.append(True)
@@ -352,7 +354,7 @@ def test_watch_and_verify_does_not_call_on_completed_on_failure(tmp_path):
     completed = []
 
     def fake_verify(_exercise):
-        return (False, "Not done yet.")
+        return (False, "Not done yet.", False)
 
     # We stop after the second failure via KeyboardInterrupt from our side
     verify_calls = []
@@ -361,7 +363,7 @@ def test_watch_and_verify_does_not_call_on_completed_on_failure(tmp_path):
         verify_calls.append(1)
         if len(verify_calls) >= 2:
             raise KeyboardInterrupt
-        return (False, "Not done yet.")
+        return (False, "Not done yet.", False)
 
     with (
         mock.patch("gitgym.watcher.EXERCISES_DIR", tmp_path / "exercises"),
@@ -395,8 +397,8 @@ def test_watch_and_verify_continues_after_failed_verify(tmp_path):
         verify_calls.append(1)
         # Fail first, succeed second
         if len(verify_calls) == 1:
-            return (False, "Not yet.")
-        return (True, "Done!")
+            return (False, "Not yet.", False)
+        return (True, "Done!", False)
 
     completed = []
 

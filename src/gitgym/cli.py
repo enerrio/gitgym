@@ -206,7 +206,7 @@ def verify_exercise():
         )
         raise SystemExit(1)
 
-    success, output = run_verify(target)
+    success, output, is_script_error = run_verify(target)
 
     if output:
         click.echo(output)
@@ -214,6 +214,16 @@ def verify_exercise():
     if success:
         click.echo(click.style("Exercise complete! Great work.", fg="green"))
         mark_completed(current_key)
+    elif is_script_error:
+        click.echo(
+            click.style(
+                "The verify script encountered an unexpected error.\n"
+                "Try 'gitgym reset' to restore the exercise.",
+                fg="red",
+            ),
+            err=True,
+        )
+        raise SystemExit(1)
     else:
         click.echo(
             click.style("Not quite right yet. Keep trying!", fg="yellow"), err=True

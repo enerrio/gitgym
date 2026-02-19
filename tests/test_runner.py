@@ -370,10 +370,11 @@ def test_run_verify_returns_true_on_success(tmp_path):
         mock.patch("gitgym.runner.EXERCISES_DIR", tmp_path / "exercises"),
         mock.patch("gitgym.runner.WORKSPACE_DIR", workspace_dir),
     ):
-        success, output = run_verify(exercise)
+        success, output, is_script_error = run_verify(exercise)
 
     assert success is True
     assert "Great job!" in output
+    assert is_script_error is False
 
 
 def test_run_verify_returns_false_on_failure(tmp_path):
@@ -397,10 +398,11 @@ def test_run_verify_returns_false_on_failure(tmp_path):
         mock.patch("gitgym.runner.EXERCISES_DIR", tmp_path / "exercises"),
         mock.patch("gitgym.runner.WORKSPACE_DIR", workspace_dir),
     ):
-        success, output = run_verify(exercise)
+        success, output, is_script_error = run_verify(exercise)
 
     assert success is False
     assert "Not done yet." in output
+    assert is_script_error is False
 
 
 def test_run_verify_missing_script_returns_false(tmp_path):
@@ -415,11 +417,12 @@ def test_run_verify_missing_script_returns_false(tmp_path):
         mock.patch("gitgym.runner.EXERCISES_DIR", tmp_path / "exercises"),
         mock.patch("gitgym.runner.WORKSPACE_DIR", workspace_dir),
     ):
-        success, output = run_verify(exercise)
+        success, output, is_script_error = run_verify(exercise)
 
     assert success is False
     assert "Error" in output
     assert "verify.sh" in output
+    assert is_script_error is True
 
 
 def test_run_verify_non_executable_script_returns_false(tmp_path):
@@ -440,10 +443,11 @@ def test_run_verify_non_executable_script_returns_false(tmp_path):
         mock.patch("gitgym.runner.EXERCISES_DIR", tmp_path / "exercises"),
         mock.patch("gitgym.runner.WORKSPACE_DIR", workspace_dir),
     ):
-        success, output = run_verify(exercise)
+        success, output, is_script_error = run_verify(exercise)
 
     assert success is False
     assert "not executable" in output
+    assert is_script_error is True
 
 
 def test_run_verify_captures_stdout_and_stderr(tmp_path):
@@ -468,11 +472,92 @@ def test_run_verify_captures_stdout_and_stderr(tmp_path):
         mock.patch("gitgym.runner.EXERCISES_DIR", tmp_path / "exercises"),
         mock.patch("gitgym.runner.WORKSPACE_DIR", workspace_dir),
     ):
-        success, output = run_verify(exercise)
+        success, output, is_script_error = run_verify(exercise)
 
     assert success is False
     assert "stdout message" in output
     assert "stderr message" in output
+
+
+def test_run_verify_exit_1_is_not_script_error(tmp_path):
+    """Exit code 1 is the conventional 'goal not met' signal — not a script error."""
+    exercises_dir = tmp_path / "exercises" / "01_basics" / "01_init"
+    exercises_dir.mkdir(parents=True)
+    workspace_dir = tmp_path / "workspace"
+    (workspace_dir / "01_basics" / "01_init").mkdir(parents=True)
+
+    _write_script(
+        exercises_dir / "verify.sh",
+        textwrap.dedent("""\
+            #!/usr/bin/env bash
+            echo "Not done yet."
+            exit 1
+        """),
+    )
+
+    exercise = _make_exercise(exercises_dir)
+
+    with (
+        mock.patch("gitgym.runner.EXERCISES_DIR", tmp_path / "exercises"),
+        mock.patch("gitgym.runner.WORKSPACE_DIR", workspace_dir),
+    ):
+        _success, _output, is_script_error = run_verify(exercise)
+
+    assert is_script_error is False
+
+
+def test_run_verify_exit_2_is_script_error(tmp_path):
+    """Exit codes other than 0 or 1 indicate an unexpected script crash."""
+    exercises_dir = tmp_path / "exercises" / "01_basics" / "01_init"
+    exercises_dir.mkdir(parents=True)
+    workspace_dir = tmp_path / "workspace"
+    (workspace_dir / "01_basics" / "01_init").mkdir(parents=True)
+
+    _write_script(
+        exercises_dir / "verify.sh",
+        textwrap.dedent("""\
+            #!/usr/bin/env bash
+            set -euo pipefail
+            # Referencing an unbound variable causes bash to exit with code 1
+            # under set -e; use an explicit exit 2 to simulate a crash.
+            exit 2
+        """),
+    )
+
+    exercise = _make_exercise(exercises_dir)
+
+    with (
+        mock.patch("gitgym.runner.EXERCISES_DIR", tmp_path / "exercises"),
+        mock.patch("gitgym.runner.WORKSPACE_DIR", workspace_dir),
+    ):
+        success, _output, is_script_error = run_verify(exercise)
+
+    assert success is False
+    assert is_script_error is True
+
+
+def test_run_verify_exit_42_is_script_error(tmp_path):
+    """Any high exit code (not 0 or 1) is flagged as a script error."""
+    exercises_dir = tmp_path / "exercises" / "01_basics" / "01_init"
+    exercises_dir.mkdir(parents=True)
+    workspace_dir = tmp_path / "workspace"
+    (workspace_dir / "01_basics" / "01_init").mkdir(parents=True)
+
+    _write_script(
+        exercises_dir / "verify.sh",
+        "#!/usr/bin/env bash\nexit 42\n",
+    )
+
+    exercise = _make_exercise(exercises_dir)
+
+    with (
+        mock.patch("gitgym.runner.EXERCISES_DIR", tmp_path / "exercises"),
+        mock.patch("gitgym.runner.WORKSPACE_DIR", workspace_dir),
+    ):
+        success, _output, is_script_error = run_verify(exercise)
+
+    assert success is False
+    assert is_script_error is True
 
 
 def test_run_verify_passes_workspace_path_as_argument(tmp_path):
@@ -520,9 +605,10 @@ def test_run_verify_missing_workspace_returns_false(tmp_path):
         mock.patch("gitgym.runner.EXERCISES_DIR", tmp_path / "exercises"),
         mock.patch("gitgym.runner.WORKSPACE_DIR", workspace_dir),
     ):
-        success, output = run_verify(exercise)
+        success, output, is_script_error = run_verify(exercise)
 
     assert success is False
+    assert is_script_error is True
 
 
 def test_run_verify_missing_workspace_suggests_reset(tmp_path):
@@ -537,6 +623,6 @@ def test_run_verify_missing_workspace_suggests_reset(tmp_path):
         mock.patch("gitgym.runner.EXERCISES_DIR", tmp_path / "exercises"),
         mock.patch("gitgym.runner.WORKSPACE_DIR", workspace_dir),
     ):
-        _success, output = run_verify(exercise)
+        _success, output, _is_script_error = run_verify(exercise)
 
     assert "gitgym reset" in output

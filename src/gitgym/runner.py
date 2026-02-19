@@ -57,11 +57,17 @@ def run_setup(exercise: Exercise) -> bool:
     return True
 
 
-def run_verify(exercise: Exercise) -> tuple[bool, str]:
+def run_verify(exercise: Exercise) -> tuple[bool, str, bool]:
     """Run verify.sh for the exercise, passing the workspace path as $1.
 
-    Returns (True, output) on success (exit code 0), (False, output) on failure.
-    Handles missing scripts, non-executable scripts, and non-zero exit codes gracefully.
+    Returns (success, output, is_script_error) where:
+    - success: True if exit code 0 (goal met).
+    - output: combined stdout/stderr from the script.
+    - is_script_error: True when the failure is a script/configuration problem
+      rather than the user simply not having met the goal yet.  This includes
+      missing or non-executable scripts, a missing workspace directory, and
+      exit codes other than 0 or 1.  Exit code 1 is the conventional
+      "goal not met" signal, so is_script_error is False in that case.
     """
     workspace_exercise_path = _workspace_path(exercise)
 
@@ -70,20 +76,20 @@ def run_verify(exercise: Exercise) -> tuple[bool, str]:
             f"Exercise repo not found at {workspace_exercise_path}.\n"
             f"Run 'gitgym reset' to re-create it."
         )
-        return False, msg
+        return False, msg, True
 
     verify_script = exercise.path / "verify.sh"
 
     if not verify_script.exists():
         msg = f"Error: verify.sh not found for exercise '{exercise.name}' at {verify_script}"
-        return False, msg
+        return False, msg, True
 
     if not os.access(verify_script, os.X_OK):
         msg = (
             f"Error: verify.sh for exercise '{exercise.name}' is not executable.\n"
             f"Fix with: chmod +x {verify_script}"
         )
-        return False, msg
+        return False, msg, True
 
     result = subprocess.run(
         [str(verify_script), str(workspace_exercise_path)],
@@ -93,4 +99,7 @@ def run_verify(exercise: Exercise) -> tuple[bool, str]:
 
     output = (result.stdout + result.stderr).strip()
     success = result.returncode == 0
-    return success, output
+    # Exit code 1 is the conventional "goal not met" signal from verify scripts.
+    # Any other non-zero exit code indicates an unexpected script error.
+    is_script_error = not success and result.returncode != 1
+    return success, output, is_script_error

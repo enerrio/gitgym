@@ -167,7 +167,7 @@ def watch_and_verify(
 
     try:
         for _ in watch(exercise, poll_interval=poll_interval):
-            success, output = run_verify(exercise)
+            success, output, is_script_error = run_verify(exercise)
 
             if output:
                 click.echo(output)
@@ -177,6 +177,11 @@ def watch_and_verify(
                 if on_completed is not None:
                     on_completed()
                 return
+            elif is_script_error:
+                print_error(
+                    "The verify script encountered an unexpected error.\n"
+                    "Try 'gitgym reset' to restore the exercise."
+                )
             else:
                 print_error("Not quite right yet. Keep trying!")
     except KeyboardInterrupt:
