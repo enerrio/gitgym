@@ -102,4 +102,4 @@ Each task is small and independently testable. Complete them in order; check off
 - [x] Verify `uv build` produces a working wheel/sdist that includes `exercises/`
 - [x] Test install from wheel in a clean venv: `pip install dist/*.whl && gitgym list`
 - [x] Add a `README.md` for PyPI with usage instructions
-- [ ] Ensure `gitgym --version` prints the version from `pyproject.toml`
+- [x] Ensure `gitgym --version` prints the version from `pyproject.toml`
