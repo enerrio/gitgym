@@ -1,0 +1,30 @@
+[exercise]
+name = "gitignore"
+topic = "Basics"
+title = "Ignore Files with .gitignore"
+description = """
+Not every file belongs in version control. Build artifacts, log files, \
+and editor configs should usually be excluded. Git reads a `.gitignore` \
+file to know which files to skip.
+
+In this exercise, the repo contains two files that should never be \
+committed:
+
+  - `build.log`  — a log file generated during builds
+  - `secret.key` — a sensitive file that must not be tracked
+
+Create a `.gitignore` that excludes both of these files. The rest of \
+the repo should remain unaffected.
+"""
+
+[goal]
+summary = ".gitignore exists and causes build.log and secret.key to be ignored by git."
+
+[[hints]]
+text = "Create a file named `.gitignore` in the exercise directory."
+
+[[hints]]
+text = "Each line in `.gitignore` is a pattern. Add `build.log` and `secret.key` on separate lines."
+
+[[hints]]
+text = "Run `git status` after creating .gitignore — the two files should no longer appear as untracked."
