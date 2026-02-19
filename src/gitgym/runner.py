@@ -48,6 +48,10 @@ def run_setup(exercise: Exercise) -> bool:
             print(result.stdout)
         if result.stderr:
             print(result.stderr)
+        print(
+            "This looks like a bug in the exercise definition. "
+            "Please file a bug report at https://github.com/gitgym/gitgym/issues"
+        )
         return False
 
     return True

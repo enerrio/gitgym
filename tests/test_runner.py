@@ -264,6 +264,58 @@ def test_run_setup_failure_prints_exit_code(tmp_path, capsys):
     assert "42" in captured.out
 
 
+def test_run_setup_failure_suggests_filing_bug(tmp_path, capsys):
+    exercises_dir = tmp_path / "exercises" / "01_basics" / "01_init"
+    exercises_dir.mkdir(parents=True)
+    workspace_dir = tmp_path / "workspace"
+
+    _write_script(
+        exercises_dir / "setup.sh",
+        textwrap.dedent("""\
+            #!/usr/bin/env bash
+            echo "something went wrong" >&2
+            exit 1
+        """),
+    )
+
+    exercise = _make_exercise(exercises_dir)
+
+    with (
+        mock.patch("gitgym.runner.EXERCISES_DIR", tmp_path / "exercises"),
+        mock.patch("gitgym.runner.WORKSPACE_DIR", workspace_dir),
+    ):
+        run_setup(exercise)
+
+    captured = capsys.readouterr()
+    assert "bug" in captured.out.lower()
+
+
+def test_run_setup_failure_prints_stderr(tmp_path, capsys):
+    exercises_dir = tmp_path / "exercises" / "01_basics" / "01_init"
+    exercises_dir.mkdir(parents=True)
+    workspace_dir = tmp_path / "workspace"
+
+    _write_script(
+        exercises_dir / "setup.sh",
+        textwrap.dedent("""\
+            #!/usr/bin/env bash
+            echo "detailed error output" >&2
+            exit 1
+        """),
+    )
+
+    exercise = _make_exercise(exercises_dir)
+
+    with (
+        mock.patch("gitgym.runner.EXERCISES_DIR", tmp_path / "exercises"),
+        mock.patch("gitgym.runner.WORKSPACE_DIR", workspace_dir),
+    ):
+        run_setup(exercise)
+
+    captured = capsys.readouterr()
+    assert "detailed error output" in captured.out
+
+
 def test_run_setup_is_idempotent(tmp_path):
     exercises_dir = tmp_path / "exercises" / "01_basics" / "01_init"
     exercises_dir.mkdir(parents=True)
