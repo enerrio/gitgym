@@ -1,0 +1,21 @@
+[exercise]
+name = "create_branch"
+topic = "Branching"
+title = "Create and Switch to a New Branch"
+description = """
+Branches let you work on new features or fixes without affecting the main \
+codebase. In this exercise, you'll create a new branch called "feature" \
+and switch to it so you're ready to start working there.
+"""
+
+[goal]
+summary = "A branch named 'feature' exists and is the currently active branch."
+
+[[hints]]
+text = "Use `git branch` to list existing branches and `git branch <name>` to create a new one."
+
+[[hints]]
+text = "After creating the branch, use `git switch feature` (or `git checkout feature`) to switch to it."
+
+[[hints]]
+text = "You can do both in one step: `git switch -c feature` (or `git checkout -b feature`)."

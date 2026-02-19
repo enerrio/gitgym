@@ -1,0 +1,21 @@
+[exercise]
+name = "delete_branch"
+topic = "Branching"
+title = "Delete a Merged Branch"
+description = """
+Once a branch has been merged into main, it's good practice to delete it \
+to keep the repository tidy. In this exercise, you're on the main branch \
+and the "old-feature" branch has already been merged. Delete it.
+"""
+
+[goal]
+summary = "The 'old-feature' branch no longer exists."
+
+[[hints]]
+text = "Use `git branch` to list branches and confirm 'old-feature' is present."
+
+[[hints]]
+text = "Delete a merged branch with `git branch -d old-feature`."
+
+[[hints]]
+text = "The `-d` flag only deletes branches that are fully merged. Run: `git branch -d old-feature`"

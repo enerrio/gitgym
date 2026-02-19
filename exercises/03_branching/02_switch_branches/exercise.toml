@@ -1,0 +1,21 @@
+[exercise]
+name = "switch_branches"
+topic = "Branching"
+title = "Switch Between Branches"
+description = """
+A colleague has already created a "bugfix" branch for you to continue \
+working on. In this exercise, you'll practice switching from the current \
+branch (main) to an existing branch (bugfix).
+"""
+
+[goal]
+summary = "The currently active branch is 'bugfix'."
+
+[[hints]]
+text = "Use `git branch` to see all branches and which one you are on."
+
+[[hints]]
+text = "Use `git switch bugfix` to switch to the bugfix branch."
+
+[[hints]]
+text = "Alternatively, `git checkout bugfix` does the same thing."
