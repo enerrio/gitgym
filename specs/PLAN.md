@@ -95,7 +95,7 @@ Each task is small and independently testable. Complete them in order; check off
 - [x] Create `exercises/07_rebase/` exercises (basic_rebase, interactive_rebase, rebase_conflict)
 - [x] Create `exercises/08_stashing/` exercises (stash_basics, stash_pop_apply)
 - [x] Create `exercises/09_advanced/` exercises (cherry_pick, bisect, tags, aliases)
-- [ ] Test every exercise end-to-end: setup → solve → verify
+- [x] Test every exercise end-to-end: setup → solve → verify
 
 ## Phase 11: Packaging & Distribution
 
