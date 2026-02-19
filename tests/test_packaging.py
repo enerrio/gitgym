@@ -1,5 +1,6 @@
 """Tests that `uv build` produces a wheel and sdist that include exercises/."""
 
+import os
 import subprocess
 import tarfile
 import zipfile
@@ -162,3 +163,58 @@ def test_sdist_exercise_count_matches_source(sdist_path):
         f"Sdist has {len(sdist_tomls)} exercise.toml files, "
         f"source has {len(source_tomls)}"
     )
+
+
+# --- install from wheel in a clean venv ---
+
+
+@pytest.fixture(scope="module")
+def installed_venv(tmp_path_factory, wheel_path):
+    """Create a clean venv and install the wheel into it."""
+    import venv
+
+    venv_dir = tmp_path_factory.mktemp("venv")
+    venv.create(str(venv_dir), with_pip=True)
+    pip = venv_dir / "bin" / "pip"
+    result = subprocess.run(
+        [str(pip), "install", str(wheel_path)],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, f"pip install failed:\n{result.stderr}"
+    return venv_dir
+
+
+def test_install_from_wheel_gitgym_list(installed_venv):
+    """gitgym list runs without error and lists exercises after wheel install."""
+    gitgym = installed_venv / "bin" / "gitgym"
+    env = {**os.environ, "HOME": str(installed_venv)}
+    result = subprocess.run(
+        [str(gitgym), "list"],
+        capture_output=True,
+        text=True,
+        env=env,
+    )
+    assert result.returncode == 0, (
+        f"gitgym list exited {result.returncode}:\n{result.stdout}\n{result.stderr}"
+    )
+    # Verify some expected topic groups appear in the output
+    output = result.stdout
+    for topic in ("Basics", "Committing", "Branching"):
+        assert topic in output, (
+            f"Expected topic '{topic}' not found in gitgym list output"
+        )
+
+
+def test_install_from_wheel_gitgym_help(installed_venv):
+    """gitgym --help runs without error after wheel install."""
+    gitgym = installed_venv / "bin" / "gitgym"
+    result = subprocess.run(
+        [str(gitgym), "--help"],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, (
+        f"gitgym --help exited {result.returncode}:\n{result.stdout}\n{result.stderr}"
+    )
+    assert "gitgym" in result.stdout.lower()
