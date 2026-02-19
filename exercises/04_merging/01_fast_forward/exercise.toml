@@ -1,0 +1,25 @@
+[exercise]
+name = "fast_forward"
+topic = "Merging"
+title = "Fast-Forward Merge"
+description = """
+When a branch hasn't diverged from the base branch, git can merge it with a \
+simple fast-forward — it just moves the branch pointer forward without creating \
+a merge commit.
+
+A `feature` branch has been created from `main` and has two additional commits. \
+`main` has not changed since `feature` was branched off. Merge `feature` into \
+`main` using a fast-forward merge.
+"""
+
+[goal]
+summary = "Merge the 'feature' branch into 'main' via a fast-forward (no merge commit created)."
+
+[[hints]]
+text = "Make sure you are on the 'main' branch before merging."
+
+[[hints]]
+text = "Use `git merge feature` to merge the feature branch into main."
+
+[[hints]]
+text = "A fast-forward merge happens automatically when there are no diverging commits. Just run: git merge feature"

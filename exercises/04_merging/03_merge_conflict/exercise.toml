@@ -1,0 +1,25 @@
+[exercise]
+name = "merge_conflict"
+topic = "Merging"
+title = "Resolve a Merge Conflict"
+description = """
+Sometimes two branches modify the same part of the same file. When you try to \
+merge them, git cannot automatically reconcile the differences and reports a \
+merge conflict. You must manually edit the file to resolve it, then stage and \
+commit the result.
+
+Both `main` and `feature` have modified the same line in `README.md`. Merge \
+`feature` into `main`, resolve the conflict in `README.md`, and complete the merge.
+"""
+
+[goal]
+summary = "Resolve the merge conflict in README.md and complete the merge commit."
+
+[[hints]]
+text = "Run `git merge feature` to start the merge. Git will report a conflict in README.md."
+
+[[hints]]
+text = "Open README.md and look for conflict markers: <<<<<<, =======, and >>>>>>>. Edit the file to keep the content you want, removing all markers."
+
+[[hints]]
+text = "After editing README.md, stage it with `git add README.md`, then complete the merge with `git commit`."

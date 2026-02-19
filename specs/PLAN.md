@@ -89,7 +89,7 @@ Each task is small and independently testable. Complete them in order; check off
 
 - [x] Create `exercises/02_committing/` exercises (amend, multi_commit, diff) with setup/verify scripts
 - [x] Create `exercises/03_branching/` exercises (create_branch, switch_branches, delete_branch)
-- [ ] Create `exercises/04_merging/` exercises (fast_forward, three_way_merge, merge_conflict)
+- [x] Create `exercises/04_merging/` exercises (fast_forward, three_way_merge, merge_conflict)
 - [ ] Create `exercises/05_history/` exercises (log_basics, log_graph, blame, show)
 - [ ] Create `exercises/06_undoing/` exercises (restore_file, unstage, revert, reset_soft, reset_mixed)
 - [ ] Create `exercises/07_rebase/` exercises (basic_rebase, interactive_rebase, rebase_conflict)

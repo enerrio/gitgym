@@ -1,0 +1,24 @@
+[exercise]
+name = "three_way_merge"
+topic = "Merging"
+title = "Three-Way Merge"
+description = """
+When two branches have diverged — each has commits the other doesn't — git \
+performs a three-way merge. Unlike a fast-forward, this creates a new merge \
+commit that ties the histories together.
+
+A `feature` branch was created from `main`, and then both branches received \
+new commits independently. Merge `feature` into `main` to create a merge commit.
+"""
+
+[goal]
+summary = "Merge the 'feature' branch into 'main', creating a merge commit."
+
+[[hints]]
+text = "Make sure you are on the 'main' branch before merging."
+
+[[hints]]
+text = "Use `git merge feature` to merge. Since both branches have diverged, git will create a merge commit."
+
+[[hints]]
+text = "Just run: git merge feature (while on 'main'). Git will open an editor for the commit message — save and close it."
