@@ -79,7 +79,7 @@ Each task is small and independently testable. Complete them in order; check off
 ## Phase 9: First Exercise Set (01_basics)
 
 - [x] Create `exercises/01_basics/01_init/` with `exercise.toml`, `setup.sh` (creates dir with a file, no git repo), `verify.sh` (checks `.git/` exists)
-- [ ] Create `exercises/01_basics/02_staging/` — setup creates a repo with an untracked file; verify checks the file is staged
+- [x] Create `exercises/01_basics/02_staging/` — setup creates a repo with an untracked file; verify checks the file is staged
 - [ ] Create `exercises/01_basics/03_status/` — setup creates a repo with mixed tracked/untracked/modified files; verify checks specific files are staged
 - [ ] Create `exercises/01_basics/04_first_commit/` — setup creates a repo with staged files; verify checks for at least one commit with a non-empty message
 - [ ] Create `exercises/01_basics/05_gitignore/` — setup creates a repo with files that should be ignored; verify checks `.gitignore` exists and specified files are excluded

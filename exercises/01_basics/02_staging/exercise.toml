@@ -1,0 +1,21 @@
+[exercise]
+name = "staging"
+topic = "Basics"
+title = "Stage a File"
+description = """
+Before git can track a file, you need to stage it with `git add`. \
+In this exercise, a file called `hello.txt` exists in the repo but \
+has not been staged yet. Stage it so git will include it in the next commit.
+"""
+
+[goal]
+summary = "hello.txt should be staged (in the index)."
+
+[[hints]]
+text = "Use `git status` to see the current state of the repository."
+
+[[hints]]
+text = "Look at the `git add` command."
+
+[[hints]]
+text = "Run `git add hello.txt` to stage the file."
