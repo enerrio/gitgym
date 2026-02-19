@@ -1,0 +1,38 @@
+[exercise]
+name = "bisect"
+topic = "Advanced"
+title = "Find a Buggy Commit with git bisect"
+description = """
+`git bisect` performs a binary search through your commit history to find \
+the first commit that introduced a bug. You mark one commit as "good" \
+(bug-free) and another as "bad" (contains the bug), and git checks out \
+commits in between for you to test.
+
+In this repository, a bug was introduced somewhere in the last 7 commits. \
+The script `test.sh` exits 0 if the code is correct and 1 if the bug is \
+present.
+
+Use `git bisect` with `git bisect run ./test.sh` to automatically find the \
+first bad commit. Once bisect finishes, record the full commit hash of the \
+first bad commit in a file called `found_commit.txt`, then run \
+`git bisect reset` to return to the latest commit.
+
+Useful commands:
+  git bisect start
+  git bisect bad HEAD
+  git bisect good HEAD~6
+  git bisect run ./test.sh
+  git bisect reset
+"""
+
+[goal]
+summary = "found_commit.txt contains the hash of the first bad commit, and bisect has been reset."
+
+[[hints]]
+text = "Start bisect with: git bisect start && git bisect bad HEAD && git bisect good HEAD~6"
+
+[[hints]]
+text = "Automate the search with: git bisect run ./test.sh"
+
+[[hints]]
+text = "After bisect prints the bad commit, run: git bisect reset   Then write the hash to found_commit.txt"

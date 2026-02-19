@@ -1,0 +1,31 @@
+[exercise]
+name = "cherry_pick"
+topic = "Advanced"
+title = "Cherry-Pick a Commit from Another Branch"
+description = """
+`git cherry-pick` lets you apply a single commit from one branch onto \
+another. This is useful when you want just one specific change — such as a \
+bug fix — without merging the entire branch.
+
+In this repository, a colleague made two commits on the `hotfix` branch:
+- "Fix critical login bug" — a fix you need on `main` right now.
+- "Clean up old code" — unrelated cleanup you are not ready to merge yet.
+
+You are on the `main` branch. Cherry-pick only the "Fix critical login bug" \
+commit from the `hotfix` branch onto `main`.
+
+The file `cherry_pick_this.txt` contains the commit hash of the commit you \
+need to cherry-pick.
+"""
+
+[goal]
+summary = "The login bug fix commit is applied to main without merging the entire hotfix branch."
+
+[[hints]]
+text = "Run `git log hotfix --oneline` to see the commits on the hotfix branch."
+
+[[hints]]
+text = "Look at the `git cherry-pick` command."
+
+[[hints]]
+text = "Run: git cherry-pick <hash>  (use the hash from cherry_pick_this.txt)"

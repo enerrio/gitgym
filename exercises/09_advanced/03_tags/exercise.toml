@@ -1,0 +1,31 @@
+[exercise]
+name = "tags"
+topic = "Advanced"
+title = "Create and Manage Git Tags"
+description = """
+Tags mark specific points in your repository's history — typically release \
+versions like `v1.0`. Unlike branches, tags do not move as new commits are \
+added.
+
+There are two kinds of tags:
+- **Lightweight tag** — just a name pointing to a commit (like a bookmark).
+- **Annotated tag** — stores extra metadata: tagger name, date, and a \
+message. Annotated tags are recommended for releases.
+
+In this repository, development of version 1.0 is complete. Your tasks are:
+1. Create a **lightweight** tag named `v1.0` on the current commit (HEAD).
+2. Create an **annotated** tag named `v1.0-release` on the current commit \
+   with the message "Release version 1.0".
+"""
+
+[goal]
+summary = "A lightweight tag v1.0 and an annotated tag v1.0-release (with message 'Release version 1.0') both point to HEAD."
+
+[[hints]]
+text = "Create a lightweight tag with: git tag v1.0"
+
+[[hints]]
+text = "Create an annotated tag with the -a and -m flags: git tag -a v1.0-release -m 'Release version 1.0'"
+
+[[hints]]
+text = "Verify your tags with: git tag -l  and  git show v1.0-release"

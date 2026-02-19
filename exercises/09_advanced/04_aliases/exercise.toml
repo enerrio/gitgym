@@ -1,0 +1,33 @@
+[exercise]
+name = "aliases"
+topic = "Advanced"
+title = "Configure Git Aliases"
+description = """
+Git aliases let you create shortcuts for commands you type often. Instead of \
+typing `git status` every time, you can configure `git st` to do the same.
+
+Aliases are stored in your git config (local or global). Set them with:
+  git config [--global] alias.<name> <command>
+
+For example:
+  git config alias.st status
+
+Configure the following two aliases in this repository:
+1. `st`  →  `status`
+2. `co`  →  `checkout`
+
+You can use either local (`--local`, the default) or global (`--global`) \
+config — both are accepted.
+"""
+
+[goal]
+summary = "Git aliases 'st' (status) and 'co' (checkout) are configured."
+
+[[hints]]
+text = "Set an alias with: git config alias.st status"
+
+[[hints]]
+text = "Set the second alias with: git config alias.co checkout"
+
+[[hints]]
+text = "Verify both aliases with: git config --list | grep alias"
