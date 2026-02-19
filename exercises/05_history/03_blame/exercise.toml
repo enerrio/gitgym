@@ -1,0 +1,25 @@
+[exercise]
+name = "blame"
+topic = "History"
+title = "Finding Who Changed a Line"
+description = """
+`git blame <file>` annotates each line of a file with the commit hash and \
+author who last modified it. This is invaluable for tracking down when and why \
+a specific line was written.
+
+This repository has a file called `poem.txt` that was written collaboratively \
+by several contributors. Use `git blame poem.txt` to find out who wrote \
+**line 3**, then write that person's name to `answer.txt`.
+"""
+
+[goal]
+summary = "Write the name of the author who wrote line 3 of poem.txt to answer.txt."
+
+[[hints]]
+text = "Run `git blame poem.txt` to see which commit and author last touched each line."
+
+[[hints]]
+text = "Each line of blame output shows: `<hash> (<Author> <date> <line-num>) <content>`. Look at line 3."
+
+[[hints]]
+text = "Once you see the author name in the blame output, run: `echo \"AuthorName\" > answer.txt`"

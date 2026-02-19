@@ -1,0 +1,28 @@
+[exercise]
+name = "log_graph"
+topic = "History"
+title = "Visualizing Branch History"
+description = """
+`git log --oneline --graph --all` draws an ASCII graph of your entire commit \
+history across all branches. It makes branch points and merges much easier to \
+understand than a plain list.
+
+This repository has two branches (`main` and `feature`) that diverged from a \
+common ancestor. Use `git log --oneline --graph --all` to visualize the \
+history, then count the total number of unique commits across all branches and \
+write that number to `answer.txt`.
+
+Tip: Each `*` in the graph output represents one commit.
+"""
+
+[goal]
+summary = "Write the total number of unique commits across all branches to answer.txt."
+
+[[hints]]
+text = "Run `git log --oneline --graph --all` to see the full branching history."
+
+[[hints]]
+text = "Count the lines that start with `*` — each represents one commit. Or use `git rev-list --all --count` to count programmatically."
+
+[[hints]]
+text = "Write the number to the file: `git rev-list --all --count > answer.txt`"

@@ -1,0 +1,28 @@
+[exercise]
+name = "show"
+topic = "History"
+title = "Inspecting a Specific Commit"
+description = """
+`git show <hash>` lets you inspect exactly what a specific commit changed: \
+the diff, the author, the date, and the full message. You can also use \
+`git show <hash>:<file>` to retrieve the contents of a file as it appeared \
+at that commit — even if the file no longer exists.
+
+This repository has a commit with the message "Add launch code". The file \
+`launch.txt` was introduced in that commit but was later removed. Use \
+`git log --oneline` to find the commit hash, then use `git show` to recover \
+the **first line** of `launch.txt` as it appeared in that commit. Write that \
+line to `answer.txt`.
+"""
+
+[goal]
+summary = "Write the first line of launch.txt from the 'Add launch code' commit to answer.txt."
+
+[[hints]]
+text = "Use `git log --oneline` to find the hash of the commit with message 'Add launch code'."
+
+[[hints]]
+text = "Use `git show <hash>:launch.txt` to view the file contents at that specific commit."
+
+[[hints]]
+text = "Write just the first line: `git show <hash>:launch.txt | head -1 > answer.txt`"

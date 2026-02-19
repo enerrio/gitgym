@@ -1,0 +1,27 @@
+[exercise]
+name = "log_basics"
+topic = "History"
+title = "Exploring Git Log"
+description = """
+`git log` is your window into a project's history. It shows you the list of \
+commits, their authors, dates, and messages.
+
+This repository has a history of commits made during a small project. At some \
+point, a critical bug was fixed. Use `git log` to find the commit that fixed \
+bug #42, then write its abbreviated commit hash to a file called `answer.txt`.
+
+Tip: `git log --oneline` gives a compact view. You can also pipe through \
+`grep` to filter by keyword.
+"""
+
+[goal]
+summary = "Write the abbreviated commit hash of the 'Fix: squash bug #42' commit to answer.txt."
+
+[[hints]]
+text = "Run `git log --oneline` to see a compact list of commits with their abbreviated hashes."
+
+[[hints]]
+text = "Look for the commit message that mentions bug #42. You can pipe the output: `git log --oneline | grep '#42'`"
+
+[[hints]]
+text = "Once you see the hash, write it to the file: `echo <hash> > answer.txt`"
