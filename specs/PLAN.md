@@ -64,8 +64,8 @@ Each task is small and independently testable. Complete them in order; check off
 
 - [x] Create `src/gitgym/watcher.py` with a polling-based `watch(exercise)` loop that checks mtime of files in the exercise directory every 1 second
 - [x] On detected change, run `verify.sh` and display the result; on success, mark completed and stop
-- [ ] Add optional `watchdog`-based implementation behind a try/except import, falling back to polling
 - [ ] Implement `gitgym watch` CLI command that starts watch mode for the current exercise
+- [ ] Add optional `watchdog`-based implementation behind a try/except import, falling back to polling
 - [ ] Write tests: modify a file in a temp exercise dir, verify the watcher detects the change
 
 ## Phase 8: Error Handling & Edge Cases
