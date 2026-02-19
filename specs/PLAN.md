@@ -70,7 +70,7 @@ Each task is small and independently testable. Complete them in order; check off
 
 ## Phase 8: Error Handling & Edge Cases
 
-- [ ] Add startup check for `git` binary availability; print install instructions if missing
+- [x] Add startup check for `git` binary availability; print install instructions if missing
 - [ ] Handle "no exercise in progress" for `describe`, `verify`, `hint`, `watch` with a helpful message
 - [ ] Handle corrupted/missing exercise repo (suggest `gitgym reset`)
 - [ ] Handle setup.sh failure (print stderr, suggest filing a bug)
