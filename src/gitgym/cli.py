@@ -20,6 +20,7 @@ from gitgym.progress import (
     reset_exercise_progress,
 )
 from gitgym.runner import run_setup, run_verify
+from gitgym.watcher import watch_and_verify
 
 
 class GitGymGroup(click.Group):
@@ -338,6 +339,40 @@ def reset_exercise(exercise: str | None, reset_all: bool):
     key = _exercise_key(target)
     reset_exercise_progress(key)
     click.echo(click.style(f"Exercise '{target.name}' has been reset.", fg="green"))
+
+
+@main.command("watch")
+def watch_exercise():
+    """Watch mode: automatically re-verify on repo changes."""
+    current_key = get_current_exercise()
+    if current_key is None:
+        click.echo(
+            click.style("No exercise is currently in progress.", fg="yellow"),
+            err=True,
+        )
+        click.echo(
+            "Run 'gitgym start' or 'gitgym list' to begin an exercise.", err=True
+        )
+        raise SystemExit(1)
+
+    exercises = load_all_exercises()
+    target = None
+    for exercise in exercises:
+        if _exercise_key(exercise) == current_key:
+            target = exercise
+            break
+
+    if target is None:
+        click.echo(
+            click.style(
+                f"Error: Exercise '{current_key}' not found in exercise definitions.",
+                fg="red",
+            ),
+            err=True,
+        )
+        raise SystemExit(1)
+
+    watch_and_verify(target, on_completed=lambda: mark_completed(current_key))
 
 
 @main.command("progress")
