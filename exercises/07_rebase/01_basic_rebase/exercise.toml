@@ -1,0 +1,25 @@
+[exercise]
+name = "basic_rebase"
+topic = "Rebase"
+title = "Rebase a Feature Branch onto Main"
+description = """
+`git rebase` rewrites a branch so that its commits appear to start from a \
+different point. Unlike `git merge`, which creates a merge commit, rebase \
+produces a clean, linear history.
+
+In this repository, `main` has moved forward since the `feature` branch was \
+created. You are on the `feature` branch. Rebase it onto `main` so that \
+`feature`'s commits follow directly after `main`'s latest commit.
+"""
+
+[goal]
+summary = "The feature branch is rebased onto main, producing a linear history with no merge commit."
+
+[[hints]]
+text = "Make sure you are on the `feature` branch: `git switch feature`."
+
+[[hints]]
+text = "Look at the `git rebase` command."
+
+[[hints]]
+text = "Run: git rebase main"

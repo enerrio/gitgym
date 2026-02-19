@@ -1,0 +1,32 @@
+[exercise]
+name = "interactive_rebase"
+topic = "Rebase"
+title = "Squash Commits Using Interactive Rebase"
+description = """
+`git rebase -i` (interactive rebase) lets you rewrite history by reordering, \
+editing, or combining commits. A common use case is **squashing** several \
+small or "WIP" commits into one clean commit before merging.
+
+The `feature` branch has three messy WIP commits. Squash all three into a \
+single commit using interactive rebase. You are already on the `feature` \
+branch.
+
+Run: `git rebase -i main`
+
+In your editor you will see the three commits listed with the word `pick`. \
+Change the second and third lines from `pick` to `squash` (or `s`), save, \
+and close the editor. Git will prompt you to write a combined commit message \
+— write something meaningful (not "WIP").
+"""
+
+[goal]
+summary = "The feature branch has exactly one commit beyond main, and that commit message does not contain 'WIP'."
+
+[[hints]]
+text = "Run `git rebase -i main` to open the interactive rebase editor."
+
+[[hints]]
+text = "In the editor, leave the first line as `pick` and change the other lines from `pick` to `squash` (or just `s`)."
+
+[[hints]]
+text = "After saving the rebase plan, Git opens another editor for the combined commit message. Write a clean message (without 'WIP') and save."

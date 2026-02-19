@@ -1,0 +1,28 @@
+[exercise]
+name = "rebase_conflict"
+topic = "Rebase"
+title = "Resolve Conflicts During a Rebase"
+description = """
+When rebasing, git replays each commit from your branch on top of the target \
+branch. If a commit touches the same lines that the target branch also \
+changed, git will pause the rebase and report a conflict — just like during \
+a merge.
+
+Both `main` and `feature` have changed the same line in `config.txt`. Rebase \
+`feature` onto `main`, resolve the conflict in `config.txt`, stage the file, \
+and continue the rebase with `git rebase --continue`.
+
+You are already on the `feature` branch.
+"""
+
+[goal]
+summary = "The feature branch is rebased onto main with the conflict in config.txt resolved — no conflict markers remain."
+
+[[hints]]
+text = "Run `git rebase main` to start the rebase. Git will pause when it hits the conflict."
+
+[[hints]]
+text = "Open `config.txt` and look for conflict markers: <<<<<<, =======, and >>>>>>>. Edit the file to keep the content you want, then remove all markers."
+
+[[hints]]
+text = "After editing config.txt, stage it with `git add config.txt`, then run `git rebase --continue` to finish."
