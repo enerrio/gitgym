@@ -2,6 +2,7 @@
 name = "gitgym"
 version = "0.1.0"
 description = "An interactive CLI platform for learning git, inspired by Rustlings."
+readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "click",
@@ -27,6 +28,7 @@ packages = ["src/gitgym"]
 include = [
     "src/",
     "exercises/",
+    "README.md",
 ]
 
 [dependency-groups]
