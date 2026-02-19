@@ -1,15 +1,20 @@
 """Tests for the polling-based watcher module."""
 
+import threading
 from pathlib import Path
 from unittest import mock
 
 from click.testing import CliRunner
 
+import gitgym.watcher as watcher_module
 from gitgym.exercise import Exercise
 from gitgym.watcher import (
     POLL_INTERVAL,
+    _HAS_WATCHDOG,
     _collect_mtimes,
     _has_changed,
+    _watch_with_polling,
+    _watch_with_watchdog,
     watch,
     watch_and_verify,
 )
@@ -433,3 +438,157 @@ def test_watch_and_verify_stops_on_keyboard_interrupt(tmp_path):
     ):
         # Should not raise
         watch_and_verify(exercise, poll_interval=0)
+
+
+# --- watchdog dispatch tests ---
+
+
+def test_has_watchdog_flag_is_bool():
+    """_HAS_WATCHDOG must be a plain bool (True when watchdog installed, else False)."""
+    assert isinstance(_HAS_WATCHDOG, bool)
+
+
+def test_watch_dispatches_to_polling_when_flag_false(tmp_path):
+    """watch() delegates to _watch_with_polling when _HAS_WATCHDOG is False."""
+    exercises_dir = tmp_path / "exercises" / "01_basics" / "01_init"
+    exercises_dir.mkdir(parents=True)
+    exercise = _make_exercise(exercises_dir)
+
+    polling_calls = []
+
+    def fake_polling(ex, poll_interval=POLL_INTERVAL):
+        polling_calls.append(ex)
+        return
+        yield  # make it a generator
+
+    with (
+        mock.patch("gitgym.watcher._HAS_WATCHDOG", False),
+        mock.patch("gitgym.watcher.EXERCISES_DIR", tmp_path / "exercises"),
+        mock.patch("gitgym.watcher.WORKSPACE_DIR", tmp_path / "workspace"),
+        mock.patch("gitgym.watcher._watch_with_polling", side_effect=fake_polling),
+    ):
+        gen = watch(exercise, poll_interval=0)
+        try:
+            next(gen)
+        except StopIteration:
+            pass
+
+    assert polling_calls == [exercise]
+
+
+def test_watch_dispatches_to_watchdog_when_flag_true(tmp_path):
+    """watch() delegates to _watch_with_watchdog when _HAS_WATCHDOG is True."""
+    exercises_dir = tmp_path / "exercises" / "01_basics" / "01_init"
+    exercises_dir.mkdir(parents=True)
+    exercise = _make_exercise(exercises_dir)
+
+    watchdog_calls = []
+
+    def fake_watchdog(ex):
+        watchdog_calls.append(ex)
+        return
+        yield  # make it a generator
+
+    with (
+        mock.patch("gitgym.watcher._HAS_WATCHDOG", True),
+        mock.patch("gitgym.watcher.EXERCISES_DIR", tmp_path / "exercises"),
+        mock.patch("gitgym.watcher.WORKSPACE_DIR", tmp_path / "workspace"),
+        mock.patch("gitgym.watcher._watch_with_watchdog", side_effect=fake_watchdog),
+    ):
+        gen = watch(exercise, poll_interval=0)
+        try:
+            next(gen)
+        except StopIteration:
+            pass
+
+    assert watchdog_calls == [exercise]
+
+
+def test_watch_with_watchdog_yields_on_event(tmp_path):
+    """_watch_with_watchdog yields each time the Observer fires an event."""
+    exercises_dir = tmp_path / "exercises" / "01_basics" / "01_init"
+    exercises_dir.mkdir(parents=True)
+    workspace_dir = tmp_path / "workspace" / "01_basics" / "01_init"
+    workspace_dir.mkdir(parents=True)
+
+    exercise = _make_exercise(exercises_dir)
+
+    # A minimal mock Observer that fires one event by setting the Event
+    # immediately when start() is called.
+    class _InstantObserver:
+        def __init__(self):
+            self._handler = None
+
+        def schedule(self, handler, path, recursive=False):
+            self._handler = handler
+
+        def start(self):
+            # Simulate an immediate filesystem event
+            self._handler._change_event.set()
+
+        def stop(self):
+            pass
+
+        def join(self):
+            pass
+
+    # A minimal mock handler class that accepts change_event in its constructor
+    class _MockHandler:
+        def __init__(self, change_event):
+            self._change_event = change_event
+
+    with (
+        mock.patch("gitgym.watcher.EXERCISES_DIR", tmp_path / "exercises"),
+        mock.patch("gitgym.watcher.WORKSPACE_DIR", tmp_path / "workspace"),
+        mock.patch.object(watcher_module, "_Observer", _InstantObserver, create=True),
+        mock.patch.object(watcher_module, "_ChangeHandler", _MockHandler, create=True),
+    ):
+        gen = _watch_with_watchdog(exercise)
+        # Should yield immediately because the mock observer fires an event on start()
+        next(gen)
+
+
+def test_watch_with_watchdog_observer_stopped_on_generator_close(tmp_path):
+    """Observer.stop() and join() are called when the watchdog generator is closed."""
+    exercises_dir = tmp_path / "exercises" / "01_basics" / "01_init"
+    exercises_dir.mkdir(parents=True)
+    workspace_dir = tmp_path / "workspace" / "01_basics" / "01_init"
+    workspace_dir.mkdir(parents=True)
+
+    exercise = _make_exercise(exercises_dir)
+
+    stopped = []
+    joined = []
+
+    class _MockObserver:
+        def __init__(self):
+            self._handler = None
+
+        def schedule(self, handler, path, recursive=False):
+            self._handler = handler
+
+        def start(self):
+            self._handler._change_event.set()
+
+        def stop(self):
+            stopped.append(True)
+
+        def join(self):
+            joined.append(True)
+
+    class _MockHandler:
+        def __init__(self, change_event):
+            self._change_event = change_event
+
+    with (
+        mock.patch("gitgym.watcher.EXERCISES_DIR", tmp_path / "exercises"),
+        mock.patch("gitgym.watcher.WORKSPACE_DIR", tmp_path / "workspace"),
+        mock.patch.object(watcher_module, "_Observer", _MockObserver, create=True),
+        mock.patch.object(watcher_module, "_ChangeHandler", _MockHandler, create=True),
+    ):
+        gen = _watch_with_watchdog(exercise)
+        next(gen)  # consume first yield
+        gen.close()  # trigger finally block
+
+    assert stopped == [True]
+    assert joined == [True]

@@ -1,7 +1,7 @@
 """Filesystem watcher for gitgym watch mode.
 
-Polls the exercise workspace directory every POLL_INTERVAL seconds and checks
-for file modification time changes.
+Uses watchdog for efficient event-based watching when available, falling back
+to polling the exercise workspace directory every POLL_INTERVAL seconds.
 """
 
 import time
@@ -15,6 +15,24 @@ from gitgym.exercise import Exercise
 from gitgym.runner import run_verify
 
 POLL_INTERVAL = 1  # seconds
+
+try:
+    from watchdog.events import FileSystemEventHandler as _BaseEventHandler
+    from watchdog.observers import Observer as _Observer
+
+    class _ChangeHandler(_BaseEventHandler):
+        """Signal a threading.Event whenever any filesystem event is received."""
+
+        def __init__(self, change_event):
+            super().__init__()
+            self._change_event = change_event
+
+        def on_any_event(self, event):
+            self._change_event.set()
+
+    _HAS_WATCHDOG = True
+except ImportError:
+    _HAS_WATCHDOG = False
 
 
 def _workspace_path(exercise: Exercise) -> Path:
@@ -45,21 +63,8 @@ def _has_changed(previous: dict[Path, float], current: dict[Path, float]) -> boo
     return previous != current
 
 
-def watch(exercise: Exercise, poll_interval: float = POLL_INTERVAL) -> None:
-    """Poll the exercise workspace directory for file changes.
-
-    Checks file modification times every *poll_interval* seconds.  When a
-    change is detected the caller-supplied on_change callback is invoked.
-    This function runs until it is interrupted (KeyboardInterrupt) or until
-    the watcher decides to stop (e.g. when the exercise is completed).
-
-    Parameters
-    ----------
-    exercise:
-        The exercise whose workspace directory should be watched.
-    poll_interval:
-        Seconds between each poll. Defaults to POLL_INTERVAL (1 second).
-    """
+def _watch_with_polling(exercise: Exercise, poll_interval: float = POLL_INTERVAL):
+    """Generator: yield whenever a file change is detected via mtime polling."""
     workspace = _workspace_path(exercise)
     previous_mtimes = _collect_mtimes(workspace)
 
@@ -73,6 +78,49 @@ def watch(exercise: Exercise, poll_interval: float = POLL_INTERVAL) -> None:
 
         else:
             previous_mtimes = current_mtimes
+
+
+def _watch_with_watchdog(exercise: Exercise):
+    """Generator: yield whenever a filesystem event is received via watchdog."""
+    import threading
+
+    workspace = _workspace_path(exercise)
+    workspace.mkdir(parents=True, exist_ok=True)
+
+    changed = threading.Event()
+    handler = _ChangeHandler(changed)
+    observer = _Observer()
+    observer.schedule(handler, str(workspace), recursive=True)
+    observer.start()
+
+    try:
+        while True:
+            changed.wait()
+            changed.clear()
+            yield
+    finally:
+        observer.stop()
+        observer.join()
+
+
+def watch(exercise: Exercise, poll_interval: float = POLL_INTERVAL):
+    """Yield whenever a change is detected in the exercise workspace directory.
+
+    Uses watchdog for event-based detection when available; falls back to
+    polling file modification times every *poll_interval* seconds.
+
+    Parameters
+    ----------
+    exercise:
+        The exercise whose workspace directory should be watched.
+    poll_interval:
+        Seconds between each poll (polling fallback only). Defaults to
+        POLL_INTERVAL (1 second).
+    """
+    if _HAS_WATCHDOG:
+        yield from _watch_with_watchdog(exercise)
+    else:
+        yield from _watch_with_polling(exercise, poll_interval)
 
 
 def watch_and_verify(
