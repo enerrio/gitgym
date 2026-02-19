@@ -82,7 +82,7 @@ Each task is small and independently testable. Complete them in order; check off
 - [x] Create `exercises/01_basics/02_staging/` — setup creates a repo with an untracked file; verify checks the file is staged
 - [x] Create `exercises/01_basics/03_status/` — setup creates a repo with mixed tracked/untracked/modified files; verify checks specific files are staged
 - [x] Create `exercises/01_basics/04_first_commit/` — setup creates a repo with staged files; verify checks for at least one commit with a non-empty message
-- [ ] Create `exercises/01_basics/05_gitignore/` — setup creates a repo with files that should be ignored; verify checks `.gitignore` exists and specified files are excluded
+- [x] Create `exercises/01_basics/05_gitignore/` — setup creates a repo with files that should be ignored; verify checks `.gitignore` exists and specified files are excluded
 - [ ] Test each exercise end-to-end: run setup.sh, perform the expected git actions, run verify.sh, confirm exit 0
 
 ## Phase 10: Remaining Exercises (02–09)
