@@ -1,0 +1,29 @@
+[exercise]
+name = "stash_pop_apply"
+topic = "Stashing"
+title = "Apply a Stash Without Removing It"
+description = """
+There are two ways to re-apply a stash:
+
+- `git stash pop` — applies the stash **and** removes it from the stash list.
+- `git stash apply` — applies the stash but **keeps** it in the stash list.
+
+`apply` is useful when you want to apply the same stash to multiple branches \
+or keep it as a backup while you review the changes.
+
+In this repository, some changes have been stashed. Apply them to the working \
+directory using `git stash apply` so that the stash entry remains in the list \
+after applying.
+"""
+
+[goal]
+summary = "The stashed changes are applied to the working directory, and the stash entry still exists in the stash list."
+
+[[hints]]
+text = "Run `git stash list` to see the stash entry."
+
+[[hints]]
+text = "Look at the `git stash apply` command (note: this is different from `git stash pop`)."
+
+[[hints]]
+text = "Run `git stash apply` to apply the most recent stash while keeping it in the stash list."
