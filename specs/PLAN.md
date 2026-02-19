@@ -87,7 +87,7 @@ Each task is small and independently testable. Complete them in order; check off
 
 ## Phase 10: Remaining Exercises (02–09)
 
-- [ ] Create `exercises/02_committing/` exercises (amend, multi_commit, diff) with setup/verify scripts
+- [x] Create `exercises/02_committing/` exercises (amend, multi_commit, diff) with setup/verify scripts
 - [ ] Create `exercises/03_branching/` exercises (create_branch, switch_branches, delete_branch)
 - [ ] Create `exercises/04_merging/` exercises (fast_forward, three_way_merge, merge_conflict)
 - [ ] Create `exercises/05_history/` exercises (log_basics, log_graph, blame, show)

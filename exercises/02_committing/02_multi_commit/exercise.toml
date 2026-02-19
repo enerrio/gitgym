@@ -1,0 +1,25 @@
+[exercise]
+name = "multi_commit"
+topic = "Committing"
+title = "Create Multiple Commits"
+description = """
+A clean commit history tells a story. Instead of lumping all changes \
+into one giant commit, good developers group related changes and commit \
+them separately.\n\
+\n\
+In this exercise three files are waiting to be committed: `README.md`, \
+`main.py`, and `utils.py`. Stage and commit each file individually with \
+a meaningful message for each commit.
+"""
+
+[goal]
+summary = "At least 3 commits exist, each with a non-empty message."
+
+[[hints]]
+text = "Use `git add <file>` to stage one file at a time, then `git commit -m \"message\"`."
+
+[[hints]]
+text = "Check `git status` between commits to track what still needs to be committed."
+
+[[hints]]
+text = "Run these in sequence:\n  git add README.md && git commit -m \"Add README\"\n  git add main.py && git commit -m \"Add main script\"\n  git add utils.py && git commit -m \"Add utility functions\""

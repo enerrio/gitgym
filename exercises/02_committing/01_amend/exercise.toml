@@ -1,0 +1,22 @@
+[exercise]
+name = "amend"
+topic = "Committing"
+title = "Amend a Commit Message"
+description = """
+Mistakes happen — even in commit messages. In this exercise the last \
+commit was saved with a typo: "Add hello worlt" instead of \
+"Add hello world". Use `git commit --amend` to fix the message \
+without creating a new commit.
+"""
+
+[goal]
+summary = "The most recent commit message no longer contains the typo 'worlt'."
+
+[[hints]]
+text = "Use `git log --oneline` to see the current (broken) commit message."
+
+[[hints]]
+text = "Look at the `git commit --amend` command."
+
+[[hints]]
+text = "Run `git commit --amend -m \"Add hello world\"` to fix the message."

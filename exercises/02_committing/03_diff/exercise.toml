@@ -1,0 +1,24 @@
+[exercise]
+name = "diff"
+topic = "Committing"
+title = "Inspect Changes with git diff"
+description = """
+Before committing, it's good practice to review exactly what changed. \
+`git diff` shows unstaged changes; `git diff --staged` shows what is \
+staged and ready to commit.\n\
+\n\
+In this exercise `app.py` has been modified but not yet staged. \
+Use `git diff` to inspect the changes, then stage and commit them.
+"""
+
+[goal]
+summary = "app.py is committed with its latest changes."
+
+[[hints]]
+text = "Run `git diff` to see the unstaged changes in app.py."
+
+[[hints]]
+text = "Run `git add app.py` to stage the changes, then `git diff --staged` to review them."
+
+[[hints]]
+text = "Finally, run `git commit -m \"your message\"` to save the snapshot."
