@@ -1,0 +1,28 @@
+[exercise]
+name = "status"
+topic = "Basics"
+title = "Interpret git status"
+description = """
+`git status` shows you exactly what is staged, what is modified, and what \
+is untracked. In this exercise the repo already has some files committed. \
+Three new files have been added:
+
+  - `feature.txt`  — a new file that should be staged
+  - `notes.txt`    — a new file that should NOT be staged
+  - `readme.txt`   — a previously committed file that has been modified
+
+Your task: stage `feature.txt` and the modified `readme.txt`, but leave \
+`notes.txt` untracked.
+"""
+
+[goal]
+summary = "feature.txt and the modified readme.txt are staged; notes.txt is not."
+
+[[hints]]
+text = "Run `git status` to see the current state of all files."
+
+[[hints]]
+text = "Use `git add <file>` to stage a specific file."
+
+[[hints]]
+text = "Stage both files: `git add feature.txt readme.txt`"
