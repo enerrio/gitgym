@@ -50,7 +50,7 @@ def run_setup(exercise: Exercise) -> bool:
             print(result.stderr)
         print(
             "This looks like a bug in the exercise definition. "
-            "Please file a bug report at https://github.com/gitgym/gitgym/issues"
+            "Please file a bug report at https://github.com/enerrio/git-gym/issues"
         )
         return False
 
