@@ -25,4 +25,5 @@ Thumbs.db
 # Claude Code workflow
 prompt.md
 specs/
+run_loop.sh
 logs/
