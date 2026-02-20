@@ -1,7 +1,6 @@
 """End-to-end tests for exercises/01_basics/02_staging."""
 
 import subprocess
-from pathlib import Path
 
 import pytest
 

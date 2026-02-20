@@ -47,7 +47,7 @@ def print_exercise_list(exercises: list[Exercise], progress: dict) -> None:
             indicator = click.style("→", fg="cyan")
         else:
             indicator = click.style("○", fg="white")
-        click.echo(f"  {indicator} {exercise.title}")
+        click.echo(f"  {indicator} {exercise.name:<20} {exercise.title}")
 
 
 def print_progress_summary(exercises: list[Exercise], progress: dict) -> None:
@@ -82,3 +82,14 @@ def print_progress_summary(exercises: list[Exercise], progress: dict) -> None:
         bar_filled = int(completed / total_in_topic * 10) if total_in_topic else 0
         bar = "█" * bar_filled + "░" * (10 - bar_filled)
         click.echo(f"  {topic:<20} [{bar}] {completed}/{total_in_topic}")
+
+    if completed_total == total:
+        click.echo()
+        click.echo(
+            click.style(
+                "You've completed all exercises! Congratulations!",
+                fg="green",
+                bold=True,
+            )
+        )
+        click.echo("Run 'gitgym clean' to remove exercise data from your system.")

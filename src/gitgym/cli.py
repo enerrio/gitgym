@@ -4,7 +4,7 @@ import subprocess
 import click
 
 from gitgym import __version__
-from gitgym.config import WORKSPACE_DIR
+from gitgym.config import GITGYM_HOME, WORKSPACE_DIR
 from gitgym.display import (
     print_exercise_header,
     print_exercise_list,
@@ -80,6 +80,24 @@ def _exercise_key(exercise: Exercise) -> str:
     return f"{exercise.path.parent.name}/{exercise.path.name}"
 
 
+def _check_all_completed() -> None:
+    """Print a congratulations message if every exercise is now completed."""
+    exercises = load_all_exercises()
+    progress = load_progress()
+    ex_progress = progress.get("exercises", {})
+    for exercise in exercises:
+        key = _exercise_key(exercise)
+        if ex_progress.get(key, {}).get("status") != "completed":
+            return
+    click.echo()
+    click.echo(
+        click.style(
+            "You've completed all exercises! Congratulations!", fg="green", bold=True
+        )
+    )
+    click.echo("Run 'gitgym clean' to remove exercise data from your system.")
+
+
 def _find_next_incomplete(exercises: list[Exercise], progress: dict) -> Exercise | None:
     """Return the first exercise that is not completed."""
     ex_progress = progress.get("exercises", {})
@@ -113,7 +131,10 @@ def start_exercise(exercise: str | None):
                 click.style(f"Error: No exercise named '{exercise}' found.", fg="red"),
                 err=True,
             )
-            click.echo("Run 'gitgym list' to see available exercises.", err=True)
+            click.echo(
+                "Run 'gitgym list' to see exercise names (e.g. init, staging, amend).",
+                err=True,
+            )
             raise SystemExit(1)
     else:
         target = _find_next_incomplete(exercises, progress)
@@ -216,6 +237,7 @@ def verify_exercise():
     if success:
         click.echo(click.style("Exercise complete! Great work.", fg="green"))
         mark_completed(current_key)
+        _check_all_completed()
     elif is_script_error:
         click.echo(
             click.style(
@@ -314,7 +336,10 @@ def reset_exercise(exercise: str | None, reset_all: bool):
                 click.style(f"Error: No exercise named '{exercise}' found.", fg="red"),
                 err=True,
             )
-            click.echo("Run 'gitgym list' to see available exercises.", err=True)
+            click.echo(
+                "Run 'gitgym list' to see exercise names (e.g. init, staging, amend).",
+                err=True,
+            )
             raise SystemExit(1)
     else:
         current_key = get_current_exercise()
@@ -384,7 +409,11 @@ def watch_exercise():
         )
         raise SystemExit(1)
 
-    watch_and_verify(target, on_completed=lambda: mark_completed(current_key))
+    def _on_completed():
+        mark_completed(current_key)
+        _check_all_completed()
+
+    watch_and_verify(target, on_completed=_on_completed)
 
 
 @main.command("progress")
@@ -393,3 +422,20 @@ def show_progress():
     exercises = load_all_exercises()
     progress = load_progress()
     print_progress_summary(exercises, progress)
+
+
+@main.command("clean")
+def clean():
+    """Remove all gitgym data (exercises, progress) from your system."""
+    if not GITGYM_HOME.exists():
+        click.echo("Nothing to clean up — no gitgym data found.")
+        return
+
+    click.echo(f"This will delete all gitgym data at {GITGYM_HOME}")
+    click.echo("  (exercise repos, progress, and all local state)")
+    if not click.confirm("Are you sure?"):
+        click.echo("Cancelled.")
+        return
+
+    shutil.rmtree(GITGYM_HOME)
+    click.echo(click.style("All cleaned up. Happy gitting!", fg="green"))

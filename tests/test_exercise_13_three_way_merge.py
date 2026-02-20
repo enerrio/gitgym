@@ -199,7 +199,9 @@ def test_verify_success_creates_merge_commit(work_dir):
         cwd=work_dir,
         check=True,
     )
-    parents = [l for l in parent_count.stdout.splitlines() if l.startswith("parent ")]
+    parents = [
+        line for line in parent_count.stdout.splitlines() if line.startswith("parent ")
+    ]
     assert len(parents) == 2
 
 

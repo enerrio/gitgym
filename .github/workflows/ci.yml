@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    name: Lint & Format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync --dev
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: uv sync --dev
+      - run: uv run pytest -v
+
+  exercises:
+    name: Validate Exercises
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync
+      - name: Verify all exercises load and setup scripts run
+        run: |
+          uv run gitgym list
+          for dir in exercises/*/*; do
+            setup="$dir/setup.sh"
+            verify="$dir/verify.sh"
+            if [ -f "$setup" ]; then
+              echo "Testing setup: $dir"
+              tmpdir=$(mktemp -d)
+              bash "$setup" "$tmpdir"
+              echo "  setup.sh OK"
+              rm -rf "$tmpdir"
+            fi
+            if [ -f "$verify" ]; then
+              [ -x "$verify" ] || { echo "ERROR: $verify is not executable"; exit 1; }
+            fi
+          done
+
+  build:
+    name: Build & Install
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv build
+      - name: Install from wheel and smoke test
+        run: |
+          uv venv /tmp/test-env
+          source /tmp/test-env/bin/activate
+          pip install dist/*.whl
+          gitgym --version
+          gitgym list

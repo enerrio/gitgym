@@ -4,7 +4,6 @@ import threading
 from pathlib import Path
 from unittest import mock
 
-from click.testing import CliRunner
 
 import gitgym.watcher as watcher_module
 from gitgym.exercise import Exercise

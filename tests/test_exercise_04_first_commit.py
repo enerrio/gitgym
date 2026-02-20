@@ -1,7 +1,6 @@
 """End-to-end tests for exercises/01_basics/04_first_commit."""
 
 import subprocess
-from pathlib import Path
 
 import pytest
 

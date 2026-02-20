@@ -1,6 +1,10 @@
 # gitgym
 
-An interactive CLI platform for learning git, inspired by [Rustlings](https://github.com/rust-lang/rustlings). Work through progressively harder exercises in real git repositories inside a safe, sandboxed workspace.
+[![PyPI version](https://img.shields.io/pypi/v/gitgym)](https://pypi.org/project/gitgym/)
+[![Python](https://img.shields.io/pypi/pyversions/gitgym)](https://pypi.org/project/gitgym/)
+[![CI](https://github.com/enerrio/gitgym/actions/workflows/ci.yml/badge.svg)](https://github.com/enerrio/gitgym/actions/workflows/ci.yml)
+
+An interactive CLI for learning git through hands-on exercises, inspired by [Rustlings](https://github.com/rust-lang/rustlings). No quizzes — you practice real git commands in real repositories inside a safe, sandboxed workspace.
 
 ## Installation
 
@@ -14,54 +18,52 @@ Or with [uv](https://docs.astral.sh/uv/):
 uv tool install gitgym
 ```
 
-**Requires:** Python 3.12+ and git installed on your system.
+**Requirements:** Python 3.12+ and git. macOS and Linux only (Windows is not currently supported).
 
 ## Quick Start
 
 ```bash
-# See all exercises
-gitgym list
-
-# Set up and start the next exercise
-gitgym next
-
-# cd into the printed exercise directory, then run git commands
-cd ~/.gitgym/exercises/01_basics/01_init
-
-# Check your work
-gitgym verify
-
-# Or watch for changes automatically
-gitgym watch
+gitgym list              # see all 32 exercises
+gitgym next              # set up the next exercise
+cd ~/.gitgym/exercises/01_basics/01_init   # cd into the printed path
+# ... run git commands to solve the exercise ...
+gitgym verify            # check your work
 ```
 
-## Typical Workflow
+## Recommended Setup
 
-1. Run `gitgym next` (or `gitgym start <exercise>`) to set up the exercise repo.
-2. `cd` into the directory that gitgym prints.
-3. Read the description with `gitgym describe`.
-4. Run git commands in that directory to reach the goal state.
-5. Run `gitgym verify` to check your work, or use `gitgym watch` for live feedback.
-6. Move on to the next exercise.
+Open **two terminal windows** (or tabs) side by side:
+
+| Terminal 1 (work)                       | Terminal 2 (control)              |
+| --------------------------------------- | --------------------------------- |
+| `cd` into the exercise directory        | `gitgym describe` — read the goal |
+| Run git commands to solve the exercise  | `gitgym hint` — get a hint        |
+| Edit files, stage, commit, branch, etc. | `gitgym verify` — check your work |
+|                                         | `gitgym watch` — live feedback    |
+
+This keeps your git work separate from the gitgym CLI, just like a real workflow.
 
 ## Commands
 
 | Command                   | Description                                                |
 | ------------------------- | ---------------------------------------------------------- |
 | `gitgym list`             | List all exercises grouped by topic with completion status |
-| `gitgym start [exercise]` | Set up an exercise repo (defaults to next incomplete)      |
+| `gitgym start [exercise]` | Set up an exercise (defaults to next incomplete)           |
 | `gitgym next`             | Alias for `gitgym start` with no argument                  |
 | `gitgym describe`         | Print the current exercise's description and goal          |
 | `gitgym verify`           | Check if the current exercise's goal state is met          |
-| `gitgym watch`            | Watch mode: auto re-verify on repo changes                 |
+| `gitgym watch`            | Auto re-verify on changes (Ctrl+C to stop)                 |
 | `gitgym hint`             | Show the next progressive hint                             |
 | `gitgym reset [exercise]` | Reset an exercise to its initial state                     |
 | `gitgym reset --all`      | Reset all exercises and clear progress                     |
 | `gitgym progress`         | Show overall progress summary                              |
+| `gitgym clean`            | Remove all gitgym data from your system                    |
+
+Exercise names are shown in `gitgym list` (e.g. `init`, `staging`, `amend`). Use these names with `gitgym start` and `gitgym reset`.
 
 ## Exercises
 
-gitgym ships with 32 exercises across 9 topics:
+32 exercises across 9 topics, from beginner to advanced:
 
 | Topic               | Exercises                                              |
 | ------------------- | ------------------------------------------------------ |
@@ -75,9 +77,9 @@ gitgym ships with 32 exercises across 9 topics:
 | **Stashing**        | stash_basics, stash_pop_apply                          |
 | **Advanced**        | cherry_pick, bisect, tags, aliases                     |
 
-## Progressive Hints
+## Features
 
-Each exercise includes progressive hints. Call `gitgym hint` repeatedly to reveal them one at a time:
+**Progressive hints** — Each exercise has multiple hints revealed one at a time:
 
 ```
 $ gitgym hint
@@ -85,29 +87,24 @@ Hint 1/3: Look at the `git init` command.
 
 $ gitgym hint
 Hint 2/3: Run `git init` inside the exercise directory.
-
-$ gitgym hint
-Hint 3/3: Just run: git init
-(No more hints available.)
 ```
 
-## Watch Mode
+**Watch mode** — `gitgym watch` polls the exercise directory and re-verifies automatically whenever you make changes. No need to switch terminals to run verify.
 
-`gitgym watch` polls the exercise directory every second. Whenever you save a file or run a git command, it automatically re-runs verification and prints the result — no need to switch terminals.
+**Progress tracking** — Your progress is saved locally in `~/.gitgym/progress.json`. Close your terminal and pick up where you left off. Run `gitgym progress` to see a per-topic breakdown.
 
-```
-$ gitgym watch
-Watching for changes... (Ctrl+C to stop)
-[11:02:34] Running verify...
-  Goal not yet met: nothing staged for commit.
-[11:02:41] Running verify...
-  Correct! You staged the file.
-```
+**Cleanup** — When you're done, run `gitgym clean` to remove all exercise data from your system.
 
-## Data & Privacy
+## Platform Support
 
-All exercise repos are stored in `~/.gitgym/exercises/`. Progress is tracked locally in `~/.gitgym/progress.json`. No data is sent anywhere.
+gitgym works on **macOS** and **Linux**. Windows is not currently supported because exercises use bash shell scripts. Windows users can use [WSL](https://learn.microsoft.com/en-us/windows/wsl/install) as a workaround.
 
-## License
+## Contributing
 
-MIT
+Exercises follow a simple structure — each one is a directory with three files:
+
+- `exercise.toml` — metadata, description, goal, and hints
+- `setup.sh` — creates the initial repo state
+- `verify.sh` — checks if the goal is met (exit 0 = pass)
+
+See the `exercises/` directory for examples.
