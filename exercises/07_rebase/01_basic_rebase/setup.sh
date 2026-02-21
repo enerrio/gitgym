@@ -10,7 +10,7 @@ if [ -d ".git" ]; then
 	rm -rf .git
 fi
 
-git init
+git init --initial-branch=main
 git config user.email "gitgym@example.com"
 git config user.name "Git Gym"
 

@@ -11,7 +11,7 @@ if [ -d ".git" ]; then
 fi
 rm -f cherry_pick_this.txt
 
-git init
+git init --initial-branch=main
 git config user.email "gitgym@example.com"
 git config user.name "Git Gym"
 

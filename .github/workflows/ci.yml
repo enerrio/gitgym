@@ -29,7 +29,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - run: uv sync --dev
-      - run: uv run pytest -v
+      - run: uv run pytest -v -x
 
   exercises:
     name: Validate Exercises
@@ -66,7 +66,6 @@ jobs:
       - name: Install from wheel and smoke test
         run: |
           uv venv /tmp/test-env
-          source /tmp/test-env/bin/activate
-          pip install dist/*.whl
-          gitgym --version
-          gitgym list
+          VIRTUAL_ENV=/tmp/test-env uv pip install dist/*.whl
+          /tmp/test-env/bin/gitgym --version
+          /tmp/test-env/bin/gitgym list
