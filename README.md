@@ -108,3 +108,7 @@ Exercises follow a simple structure — each one is a directory with three files
 - `verify.sh` — checks if the goal is met (exit 0 = pass)
 
 See the `exercises/` directory for examples.
+
+## How It Was Built
+
+This project was built using Claude Code. Read the full story in [Dispatch from the Frontier — Adventures in AI Engineering](https://enerrio.bearblog.dev/dispatch-frontier/). The prompts and transcripts used during development are available in the [gitgym-prompts](https://github.com/enerrio/gitgym-prompts) repo.
